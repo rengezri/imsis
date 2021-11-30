@@ -41,3 +41,10 @@ IMSIS Documentation building requires the following packages
 - sphinx
 - sphinx_rtd_theme
 - rinohtype
+
+Installation
+------------
+
+python setup.py sdist bdist_wheel
+
+pip install dist\imsis-1.0-py3-none-any.whl
