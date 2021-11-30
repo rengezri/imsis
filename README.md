@@ -18,9 +18,6 @@ Typical applications would be:
 - Image filtering in Fourier space
 - Fast image processing for machine learning data
 
-A list of examples of each method can be found in the examples folder.
-
-
 Requirements
 ------------
 
@@ -48,3 +45,19 @@ Installation
 python setup.py sdist bdist_wheel
 
 pip install dist\imsis-1.0-py3-none-any.whl
+
+Example
+-------
+
+A simple example of loading and displaying an image
+
+```
+import imsis as ims
+
+fn = r".\images\bberry.jpg"
+im_blueberry = ims.Image.load(fn)
+
+ims.View.plot(im_blueberry,title="Blueberry",window_title="Plot")
+```
+
+A list of examples of every method implemented can be found in the examples folder.
