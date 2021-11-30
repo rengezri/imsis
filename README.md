@@ -38,6 +38,6 @@ Requirements documentation
 
 IMSIS Documentation building requires
 
-sphinx
-sphinx_rtd_theme
-rinohtype
+- sphinx
+- sphinx_rtd_theme
+- rinohtype
