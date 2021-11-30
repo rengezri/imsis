@@ -24,7 +24,7 @@ A list of examples of each method can be found in the examples folder.
 Requirements
 ------------
 
-imsis requires the following packages
+IMSIS requires the following packages
 
 - numpy 1.13.3
 - scipy 1.1.0
@@ -33,3 +33,11 @@ imsis requires the following packages
 - Pillow 6.2.0
 - PyQt5 5.15
 
+Requirements documentation
+--------------------------
+
+IMSIS Documentation building requires
+
+sphinx
+sphinx_rtd_theme
+rinohtype
