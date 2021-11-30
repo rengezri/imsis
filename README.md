@@ -36,7 +36,7 @@ IMSIS requires the following packages
 Requirements documentation
 --------------------------
 
-IMSIS Documentation building requires
+IMSIS Documentation building requires the following packages
 
 - sphinx
 - sphinx_rtd_theme
