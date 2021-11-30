@@ -33,11 +33,13 @@ IMSIS requires the following packages
 Requirements documentation
 --------------------------
 
-IMSIS Documentation building requires the following packages
+IMSIS Documentation building requires the following additional packages
 
 - sphinx
 - sphinx_rtd_theme
 - rinohtype
+
+Documentation can be automatically generated with python build_docs.py
 
 Installation
 ------------
@@ -61,3 +63,4 @@ ims.View.plot(im_blueberry,title="Blueberry",window_title="Plot")
 ```
 
 A list of examples of every method implemented can be found in the examples folder.
+
