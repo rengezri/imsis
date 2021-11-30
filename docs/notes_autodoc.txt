@@ -1,0 +1,16 @@
+Autodocumentation notes:
+
+#not required
+sphinx-quickstart
+
+make html
+
+sphinx-build -b rinoh source _build/rinohimsis autofunctions
+========================
+.. autoclass:: teacherAPI.autofunctions
+   :members: AutoFunctions
+
+
+pip install sphinx_rtd_theme
+
+pip install rinohtype
