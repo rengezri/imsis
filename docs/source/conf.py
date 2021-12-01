@@ -19,7 +19,7 @@ sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
 
-project = 'imsis'
+project = 'IMSIS'
 copyright = '2021, IMSIS'
 author = 'IMSIS'
 
@@ -144,7 +144,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'imsis.tex', 'IMSIS Documentation',
-     'madowki', 'manual'),
+     'rengezri', 'manual'),
 ]
 
 
