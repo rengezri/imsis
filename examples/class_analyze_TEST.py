@@ -65,11 +65,10 @@ print("Image A vs C MSE:", image_mse)
 ims.View.plot_list([img1a, img1b, img1a], ['Image A', 'Image B (noise added)', 'Image C'],
                    window_title="Image Comparison")
 
+
 # LINE MEASUREMENTS
-
-
 vectors = [[(38, 14), (38, 80)]]
-width = 50  # predefined width, which is used to smoothen the signal
+width = 40  # predefined width, which is used to smoothen the signal
 print(vectors[0])
 position, length, direction = ims.Analyze.vector_position_length_direction(vectors[0])
 
@@ -88,6 +87,7 @@ img4, widthout = ims.Analyze.measure_linewidth(img, position, width, length, dir
                                                derivative=1,
                                                linethickness=1, invert=True,
                                                plotresult=True, plotboundingbox=True)
+
 img6, results = ims.Analyze.measure_lines(img, vectors, linewidth=50, pixelsize=pixelsize, derivative=1, invert=True,
                                           verbose=False)
 
@@ -110,13 +110,13 @@ ims.View.plot(img2_1, '',
 img5 = im_spots
 
 img3, dx, dy = ims.Analyze.find_brightest_spot(img5, pixelsize=1)
-ims.View.plot_list([img5, img3], ["Source", "Brightest spot {} {}".format(dx, dy)], window_title="Find Brightest Spot")
+ims.View.plot_list([img5, img3], ["Source", "Brightest spot pos=({},{})".format(dx, dy)], window_title="Find Brightest Spot")
 
 img3, dx, dy = ims.Analyze.find_contour_center(img5)
-ims.View.plot_list([img5, img3], ["Source", "Contour center {} {}".format(dx, dy)], window_title="Find Contour Center")
+ims.View.plot_list([img5, img3], ["Source", "Contour center pos=({},{})".format(dx, dy)], window_title="Find Contour Center")
 
 img3, dx, dy = ims.Analyze.find_image_center_of_mass(img5)
-ims.View.plot_list([img5, img3], ["Source", "Center of mass {} {}".format(dx, dy)],
+ims.View.plot_list([img5, img3], ["Source", "Center of mass pos=({},{})".format(dx, dy)],
                    window_title="Find Image Center of Mass")
 
 img2 = ims.Image.Adjust.thresholdrange(img, 3, 64)
@@ -131,7 +131,7 @@ shiftx = 5
 shifty = 5
 img1 = ims.Image.Transform.translate(img0, shiftx, shifty)
 img1 = ims.Image.Process.poisson_noise(img1)
-ims.View.plot_list([img0, img1], ["Source", "Destination {} {}".format(shiftx, shifty)])
+ims.View.plot_list([img0, img1], ["Source", "Destination pos=({},{})".format(shiftx, shifty)])
 
 # SHARPNESS MEASUREMENTS
 

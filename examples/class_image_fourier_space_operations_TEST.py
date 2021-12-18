@@ -8,7 +8,10 @@ import imsis as ims
 
 print("Starting...")
 
-fn = r".\images\spa_rice.tif"
+#fn = r".\images\bberry.jpg"
+fn = r".\images\rice.jpg"
+#fn = r".\images\spa_rice.tif"
+
 img = ims.Image.load(fn)
 img_grey = ims.Image.Convert.to8bit(img)
 img_grey = ims.Image.Convert.toGray(img_grey)

@@ -56,7 +56,7 @@ score = find_feature.score
 print(shift_in_pixels, score)
 
 ims.View.plot_list([rgb_before, rgb_after],
-                   ["source", "Target {} {} {:.2f}".format(shift_in_pixels[0], shift_in_pixels[1], score),
+                   ["source", "Target=({},{}) Score=({:.2f})".format(shift_in_pixels[0], shift_in_pixels[1], score),
                     "difference"], window_title="Find Feature")
 
 print("Ready.")
