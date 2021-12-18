@@ -157,6 +157,8 @@ class Analyze(object):
             plt.gcf().canvas.set_window_title('Find Edges - Image - 1st Derivative, 2nd Derivative')
             gridspec.GridSpec(4, 1)
             plt.subplot2grid((4, 1), (0, 0), colspan=1, rowspan=2)
+            st1 = "Edge position=({},{})".format(xpos,ypos)
+            plt.title(st1)
             plt.imshow(rgb)
             plt.subplot2grid((4, 1), (2, 0), colspan=1, rowspan=1)
             plt.plot(xn, yn)

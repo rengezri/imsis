@@ -2371,7 +2371,7 @@ class Image(object):
             matches = sortMatches[0:128]
 
             img3 = cv.drawMatches(img1, kp1, img2, kp2, matches[:100], None, flags=2)
-            cv.imshow("matches", img3)
+            cv.imshow("Feature descriptor matching", img3)
             cv.waitKey(0)
 
             image_1_points = np.zeros((len(matches), 1, 2), dtype=np.float32)
