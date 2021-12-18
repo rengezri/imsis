@@ -64,3 +64,61 @@ ims.View.plot(im_blueberry,title="Blueberry",window_title="Plot")
 
 A list of examples of every method implemented can be found in the examples folder.
 
+Some more can be found below:
+
+
+Animated transitions
+--------------------
+<img src="./figures/animated_transitions.jpg" width="300">
+
+Image blending
+--------------
+<img src="./figures/blending.jpg" width="300">
+
+Image denoising
+---------------
+<img src="./figures/denoise.jpg" width="300">
+
+Interactive user dialogs
+------------------------
+<img src="./figures/dialogs.jpg" width="300">
+
+Measurements on images
+----------------------
+<img src="./figures/measurements_on_image.jpg" width="300">
+
+Feature descriptor Matching
+---------------------------
+<img src="./figures/feature_descriptor_matching.jpg" width="300">
+
+Find Brightest Spot
+-------------------
+<img src="./figures/find_brightest_spot.jpg" width="300">
+
+Find Edges
+----------
+<img src="./figures/find_edges.jpg" width="300">
+
+Find Feature
+------------
+<img src="./figures/find_feature.jpg" width="300">
+
+Frequency domain image filtering
+--------------------------------
+<img src="./figures/frequency_domain_filtering.jpg" width="300">
+
+Histogram operations
+--------------------
+<img src="./figures/histogram_operations.jpg" width="300">
+
+HSV color channel editing
+-------------------------
+<img src="./figures/hsv_Channels.jpg" width="300">
+
+K-means clustering
+------------------
+<img src="./figures/k_meansclustering.jpg" width="300">
+
+Image masking
+-------------
+<img src="./figures/masking.jpg" width="300">
