@@ -65,6 +65,10 @@ print("Image A vs C MSE:", image_mse)
 ims.View.plot_list([img1a, img1b, img1a], ['Image A', 'Image B (noise added)', 'Image C'],
                    window_title="Image Comparison")
 
+image_empty = ims.Analyze.is_image_empty(img1a)
+print("Is image empty? ", image_empty)
+
+sys.exit()
 
 # LINE MEASUREMENTS
 vectors = [[(38, 14), (38, 80)]]

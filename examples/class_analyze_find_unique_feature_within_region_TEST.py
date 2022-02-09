@@ -10,6 +10,8 @@ print("Starting...")
 
 fn = r".\images\bberry.jpg"
 img0 = ims.Image.load(fn)
+#img0 = ims.Image.Convert.toGray(img0)
+#img0 = ims.Image.Convert.to16bit(img0)
 
 # create displaced image
 maxdrift = 200
@@ -20,13 +22,15 @@ driftx, drifty = 35, -23
 im3 = ims.Image.Transform.translate(img0, driftx, drifty)
 
 # either select template manually or by code
-SHOWDIALOGS = False
+SHOWDIALOGS = True
 
 find_feature = ims.Analyze.FindFeature()  # create object
 
 if SHOWDIALOGS == True:
 
     find_feature.create_template_dialog(img0)
+
+    ims.View.plot(find_feature.template)
 else:
     t_center_perc = [0.4, 0.4]
     t_size_perc = [0.25, 0.25]
@@ -34,12 +38,14 @@ else:
     # t_size_perc = [0.8, 0.8]
 
     find_feature.create_template(img0, t_center_perc, t_size_perc)
+    ims.View.plot(find_feature.template)
+
 
 # define search region
 find_feature.set_searchregion_as_template_perc(img0, 2)
 
 # show a plot of the search region and the template
-rgb_before = find_feature.plot_searchregion_and_template(img0, verbose=False)
+rgb_before = find_feature.plot_searchregion_and_template(img0, verbose=True)
 
 # im3 = ims.Image.Tools.add_blackmask(im3,[120,50,500,300])
 # ims.View.plot(im3)
