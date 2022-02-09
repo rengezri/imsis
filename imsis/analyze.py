@@ -1186,6 +1186,21 @@ class Analyze(object):
                 # cv.line(edges, (x1, y1), (x2, y2), (255, 0, 0), 3)
         return out, lines
 
+    @staticmethod
+    def is_image_empty(img):
+        """ Return true if image is empty
+
+        :Parameters: image
+        :Returns: bool
+        """
+        img = ims.Image.Convert.toGray(img)
+        result = False
+        if cv.countNonZero(img)==0:
+            result=True
+        return result
+
+
+
     class SharpnessDetection:
         # Ref: http: // radjkarl.github.io / imgProcessor / _modules / imgProcessor / measure / sharpness / parameters.html
 
@@ -1683,7 +1698,15 @@ class Analyze(object):
             x1 = center[0] + round(size[0] * 0.5)
             y0 = center[1] - round(size[1] * 0.5)
             y1 = center[1] + round(size[1] * 0.5)
+
+            if x0<0:
+                x0=0
+            if y0<0:
+                y0=0
             template = self.__crop(img, x0, y0, x1, y1)
+
+
+
             return template
 
         def __crop(self, img, x0, y0, x1, y1):
@@ -1710,7 +1733,10 @@ class Analyze(object):
             }      '''
 
             template = ims.Image.Convert.toGray(self.template)
+            template = ims.Image.Convert.to8bit(template)
+
             img = ims.Image.Convert.toGray(img)
+            img = ims.Image.Convert.to8bit(img)
 
             # crop to region and adjust template
             self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
@@ -1741,6 +1767,7 @@ class Analyze(object):
 
             method = self.template_matcher
             showresult = False
+
             pt, score = self.__templatematch(img1, template, templateorigin, method)
             self._shift_in_pixels = pt
             self._score = score
@@ -1774,6 +1801,7 @@ class Analyze(object):
             :Parameters: image
             :Returns: -
             """
+            img0 = ims.Image.Convert.to8bit(img0)
             img2 = ims.Analyze.add_text(img0, 0, 0, 'Input: drag a rectangle around the fiducial area.', 20)
             shapes = ims.Dialogs.select_areas(img2, 'Template matching input')
             widthperc, heightperc, centerxperc, centeryperc = ims.Analyze.rectangle_pixels_to_percentage(img0,
@@ -1822,7 +1850,6 @@ class Analyze(object):
 
             meth = methods[method]
             methodn = eval(meth)
-
             # Apply template Matching
             res = cv.matchTemplate(img, template, methodn)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
@@ -1879,11 +1906,12 @@ class Analyze(object):
             xs1 = ims.Misc.multipleof2((self.s_center_perc[0] + self.s_size_perc[0] * 0.5) * w)
             ys1 = ims.Misc.multipleof2((self.s_center_perc[1] + self.s_size_perc[1] * 0.5) * h)
 
+
             # rgb = img.copy()
 
             print("template: ", xt0, yt0, xt1, yt1)
             print("searchregion: ", xs0, ys0, xs1, ys1)
-
+            img = ims.Image.Convert.to8bit(img)
             try:
                 rgb = cv.cvtColor(img, cv.COLOR_GRAY2RGB)
             except:
@@ -1912,3 +1940,4 @@ class Analyze(object):
             if self.s_size_perc[1] > 1:
                 self.s_size_perc[1] = 1
             print('searchregion,searchsize: ', self.s_center_perc, self.s_size_perc)
+
