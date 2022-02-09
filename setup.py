@@ -4,7 +4,7 @@ import setuptools
 setup(
   name = 'imsis',
   packages = ['imsis'],
-  version = '1.0',
+  version = '1.1',
   license='MIT',
   description = 'image analysis in Python',
   author = 'rengezri',
