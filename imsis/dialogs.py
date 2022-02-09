@@ -68,6 +68,14 @@ class Window(QtWidgets.QWidget):
         msg.move(10, 10)
         msg.resize(512, 512)
 
+    def dialog_textbox_html(self, title, text):
+        msg = QtWidgets.QTextEdit(self)
+        msg.insertHtml(text)
+        msg.move(10, 10)
+        msg.resize(512, 512)
+
+
+
     def dialog_propertygrid(self, properties, text, info=""):
 
         def onCheckBoxStateChanged():
@@ -788,6 +796,25 @@ class Dialogs(object):
         window.show()
         app.exec()
         # sys.exit(app.exec_())
+
+    @staticmethod
+    def textbox_html(text, windowtext="Textbox", alwaysontop=True):
+        """Text message
+        This is a multi-line textbox, input is a HTML string
+        :Parameters: text
+        """
+        app = QtWidgets.QApplication(sys.argv)
+        window = Window()
+        window.dialog_textbox_html(windowtext, text)
+        window.setWindowTitle(windowtext)
+        if alwaysontop == True:
+            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        window.show()
+        app.exec()
+        # sys.exit(app.exec_())
+
+
 
     @staticmethod
     def error(text, alwaysontop=True):

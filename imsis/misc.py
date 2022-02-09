@@ -140,4 +140,48 @@ class Misc(object):
 
 
 
+    @staticmethod
+    def obj2dict(obj, verbose=False):
+        """Convert Object to Dictionary
+
+        can be used for json serialization of objects in a class
+
+        :Parameters: Object
+        :Returns: Dictionary
+        """
+        pr = {}
+        for name in dir(obj):
+            value = getattr(obj, name)
+            if not name.startswith('__') and not inspect.ismethod(value):
+                if (type(value) == dict):
+                    pr[name] = "dict({0})".format(value)
+                    if (verbose == True):
+                        print(str(value))
+                else:
+                    pr[name] = value
+        return pr
+
+    @staticmethod
+    def dict2obj(src_dct, tar_obj):
+        """Convert Dictionary to predefined Object
+
+        can be used for json serialization of objects in a class
+
+        :Parameters: Dictionary
+        :Returns: Target Object
+        """
+        for k, v in src_dct.items():
+            setattr(tar_obj, k, v)
+            if (type(v) == str):
+                if (v.startswith("dict")):
+                    v = v.split("(", 1)[1]  # remove dict(
+                    v = v[:-1]  # remove last )
+                    v2 = eval(v)
+                    setattr(tar_obj, k, v2)
+                else:
+                    setattr(tar_obj, k, v)
+        return tar_obj
+
+
+
 
