@@ -10,8 +10,11 @@ print("Starting...")
 
 fn = r".\images\bberry.jpg"
 img0 = ims.Image.load(fn)
-#img0 = ims.Image.Convert.toGray(img0)
-#img0 = ims.Image.Convert.to16bit(img0)
+img0 = ims.Image.Convert.toGray(img0)
+img0 = ims.Image.Convert.to16bit(img0)
+
+dom_col = ims.Analyze.get_dominant_color(img0)
+img0 = ims.Image.Tools.add_border(img0, 50,color=dom_col)  # adding 50 pixels to allow for matching close to borders
 
 # create displaced image
 maxdrift = 200
@@ -29,8 +32,7 @@ find_feature = ims.Analyze.FindFeature()  # create object
 if SHOWDIALOGS == True:
 
     find_feature.create_template_dialog(img0)
-
-    ims.View.plot(find_feature.template)
+    # ims.View.plot(find_feature.template)
 else:
     t_center_perc = [0.4, 0.4]
     t_size_perc = [0.25, 0.25]
@@ -38,8 +40,7 @@ else:
     # t_size_perc = [0.8, 0.8]
 
     find_feature.create_template(img0, t_center_perc, t_size_perc)
-    ims.View.plot(find_feature.template)
-
+    # ims.View.plot(find_feature.template)
 
 # define search region
 find_feature.set_searchregion_as_template_perc(img0, 2)
@@ -59,7 +60,7 @@ rgb_after = find_feature.plot_matchresult(im3, verbose=False)
 
 shift_in_pixels = find_feature.shift_in_pixels
 score = find_feature.score
-print(shift_in_pixels, score)
+# print(shift_in_pixels, score)
 
 ims.View.plot_list([rgb_before, rgb_after],
                    ["source", "Target=({},{}) Score=({:.2f})".format(shift_in_pixels[0], shift_in_pixels[1], score),
