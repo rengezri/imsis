@@ -8,12 +8,12 @@ http://www.opensource.org/licenses/MIT-license
 This module contains methods to display images
 """
 
-
 import matplotlib.gridspec as gridspec
 import numpy as np
 from matplotlib import pyplot as plt
 import imsis as ims
 import os
+
 
 class View(object):
 
@@ -26,7 +26,7 @@ class View(object):
         # img = cv.pyrDown(img)
 
         try:
-            print(img.shape)
+            dummy = (img.shape)
         except:
             print('Error, image shape mismatch found in plot.')
 
@@ -34,11 +34,9 @@ class View(object):
         plt.gcf().canvas.set_window_title(window_title)
         plt.title(title)
 
-
-
         img = ims.Image.Convert.BGRtoRGB(img)
 
-        if len(img.shape)==2:
+        if len(img.shape) == 2:
             plt.imshow(img, cmap='gray')
         else:
             plt.imshow(img)
@@ -46,7 +44,6 @@ class View(object):
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
         plt.show()
-
 
     @staticmethod
     def plot_list(imglist, titlelist=[''], window_title='Plot', save_image_filename=""):
@@ -212,7 +209,6 @@ class View(object):
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
         plt.show()
-
 
     @staticmethod
     def plot_3dsurface(img, resize=0.15, save_image_filename=""):

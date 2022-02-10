@@ -74,8 +74,6 @@ class Window(QtWidgets.QWidget):
         msg.move(10, 10)
         msg.resize(512, 512)
 
-
-
     def dialog_propertygrid(self, properties, text, info=""):
 
         def onCheckBoxStateChanged():
@@ -109,7 +107,7 @@ class Window(QtWidgets.QWidget):
                     properties[row][0] = twi0
                     properties[row][1] = twi1
                 except:
-                    pass #skip bool
+                    pass  # skip bool
             self.close()
 
         # Grid Layout
@@ -814,8 +812,6 @@ class Dialogs(object):
         app.exec()
         # sys.exit(app.exec_())
 
-
-
     @staticmethod
     def error(text, alwaysontop=True):
         """Error message
@@ -859,7 +855,7 @@ class Dialogs(object):
 
         app.exec()
 
-        #print('out', table)
+        # print('out', table)
 
         properties = {}
         st1 = ''
@@ -867,7 +863,7 @@ class Dialogs(object):
             # try:
             twi0 = table[row][0]
             twi1 = table[row][1]
-            st1=st1+' '+str(twi0)+' ' + str(twi1)
+            st1 = st1 + ' ' + str(twi0) + ' ' + str(twi1)
 
             if (datatypes[row] is bool):
                 res = False
@@ -1457,22 +1453,21 @@ class Dialogs(object):
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
         cv.createTrackbar("BandCenter", windowtext, 32, 255, nothing)
-        cv.createTrackbar("BandWidth", windowtext, 16,255, nothing)
-        cv.createTrackbar("lpType", windowtext, 0,2, nothing)
-
+        cv.createTrackbar("BandWidth", windowtext, 16, 255, nothing)
+        cv.createTrackbar("lpType", windowtext, 0, 2, nothing)
 
         while (1):
             bandcenter = cv.getTrackbarPos("BandCenter", windowtext)
             bandwidth = cv.getTrackbarPos("BandWidth", windowtext)
             lptype = cv.getTrackbarPos("lpType", windowtext)
 
-            filtered,mask = ims.Image.Process.FD_bandpass_filter(img,bandcenter,bandwidth,bptype=lptype)
-            #combined = mask
-            combined = ims.Image.Tools.concat_two_images(filtered,mask)
+            filtered, mask = ims.Image.Process.FD_bandpass_filter(img, bandcenter, bandwidth, bptype=lptype)
+            # combined = mask
+            combined = ims.Image.Tools.concat_two_images(filtered, mask)
 
-            #ims.View.plot(combined)
-            #sys.exit()
-            #combined = filtered
+            # ims.View.plot(combined)
+            # sys.exit()
+            # combined = filtered
             cv.imshow(windowtext, combined)
             k = cv.waitKey(1) & 0xFF
             if k == 27:
@@ -1483,8 +1478,8 @@ class Dialogs(object):
         cv.destroyAllWindows()
 
         filtered, mask = ims.Image.Process.FD_bandpass_filter(img, bandcenter, bandwidth, bptype=lptype)
-        print("FFT BandPass bandcenter={}, bandwidth={}, lpType={}".format(bandcenter,bandwidth,lptype))
-        return filtered, mask, bandcenter,bandwidth,lptype
+        print("FFT BandPass bandcenter={}, bandwidth={}, lpType={}".format(bandcenter, bandwidth, lptype))
+        return filtered, mask, bandcenter, bandwidth, lptype
 
     @staticmethod
     def adjust_HSL(img, windowtext="HSL Channels"):
@@ -1507,15 +1502,15 @@ class Dialogs(object):
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
         cv.createTrackbar("Hue", windowtext, 0, 180, nothing)
-        cv.createTrackbar("Sat", windowtext, 255, 255*2, nothing)
-        cv.createTrackbar("Light", windowtext, 255, 255*2, nothing)
+        cv.createTrackbar("Sat", windowtext, 255, 255 * 2, nothing)
+        cv.createTrackbar("Light", windowtext, 255, 255 * 2, nothing)
 
         while (1):
             Hue = cv.getTrackbarPos("Hue", windowtext)
             Sat = cv.getTrackbarPos("Sat", windowtext)
             Light = cv.getTrackbarPos("Light", windowtext)
 
-            hsl = ims.Image.Adjust.adjust_HSL(frame, Hue, Sat-255, Light-255)
+            hsl = ims.Image.Adjust.adjust_HSL(frame, Hue, Sat - 255, Light - 255)
             cv.imshow(windowtext, hsl)
 
             # cv.imshow(windowtext, thresh1)
@@ -1526,8 +1521,8 @@ class Dialogs(object):
                 break
 
         cv.destroyAllWindows()
-        print("Adjust HSL: image, Hue={},Sat={},Light={}".format(Hue, Sat-255, Light-255))
-        hls = ims.Image.Adjust.adjust_HSL(img, Hue, Sat-255, Light-255)
+        print("Adjust HSL: image, Hue={},Sat={},Light={}".format(Hue, Sat - 255, Light - 255))
+        hls = ims.Image.Adjust.adjust_HSL(img, Hue, Sat - 255, Light - 255)
         return hls, Hue, Sat, Light
 
     @staticmethod
@@ -1551,15 +1546,15 @@ class Dialogs(object):
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
         cv.createTrackbar("Hue", windowtext, 0, 180, nothing)
-        cv.createTrackbar("Sat", windowtext, 255, 255*2, nothing)
-        cv.createTrackbar("Value", windowtext, 255, 255*2, nothing)
+        cv.createTrackbar("Sat", windowtext, 255, 255 * 2, nothing)
+        cv.createTrackbar("Value", windowtext, 255, 255 * 2, nothing)
 
         while (1):
             Hue = cv.getTrackbarPos("Hue", windowtext)
             Sat = cv.getTrackbarPos("Sat", windowtext)
             Val = cv.getTrackbarPos("Value", windowtext)
 
-            hsv = ims.Image.Adjust.adjust_HSV(frame, Hue, Sat-255, Val-255)
+            hsv = ims.Image.Adjust.adjust_HSV(frame, Hue, Sat - 255, Val - 255)
             cv.imshow(windowtext, hsv)
 
             # cv.imshow(windowtext, thresh1)
@@ -1570,8 +1565,8 @@ class Dialogs(object):
                 break
 
         cv.destroyAllWindows()
-        print("Adjust HSV: image, Hue={},Sat={},Value={}".format(Hue, Sat-255, Val-255))
-        hls = ims.Image.Adjust.adjust_HSV(img, Hue, Sat-255, Val-255)
+        print("Adjust HSV: image, Hue={},Sat={},Value={}".format(Hue, Sat - 255, Val - 255))
+        hls = ims.Image.Adjust.adjust_HSV(img, Hue, Sat - 255, Val - 255)
         return hls, Hue, Sat, Val
 
     @staticmethod

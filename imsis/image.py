@@ -20,6 +20,7 @@ import numpy.random as random
 from matplotlib.colors import hsv_to_rgb
 from datetime import datetime
 
+
 class Image(object):
 
     @staticmethod
@@ -598,7 +599,7 @@ class Image(object):
             :Returns: dft_shift, specimage
             """
 
-            #img = Image.Convert.toGray(img)
+            # img = Image.Convert.toGray(img)
             # do dft saving as complex output
             dft = np.fft.fft2(img, axes=(0, 1))
             # apply shift of origin to center of image
@@ -1255,11 +1256,11 @@ class Image(object):
                 # plt.show(block=True)
                 img_new = np.reshape(img_new, img.shape)
             else:
-                if len(img.shape)==2:
+                if len(img.shape) == 2:
                     img_new = cv.equalizeHist(img)
                 else:
-                    img_yuv = cv.cvtColor(img, cv.COLOR_BGR2YUV) # equalize the histogram of the Y channel
-                    img_yuv[:, :, 0] = cv.equalizeHist(img_yuv[:, :, 0]) # convert the YUV image back to RGB format
+                    img_yuv = cv.cvtColor(img, cv.COLOR_BGR2YUV)  # equalize the histogram of the Y channel
+                    img_yuv[:, :, 0] = cv.equalizeHist(img_yuv[:, :, 0])  # convert the YUV image back to RGB format
                     img_new = cv.cvtColor(img_yuv, cv.COLOR_YUV2BGR)
 
             return img_new
@@ -1333,9 +1334,9 @@ class Image(object):
             table = np.array([i * (contrast / 127 + 1) - contrast + brightness for i in range(0, 256)]).clip(0,
                                                                                                              255).astype(
                 'uint8')
-            #if len(img.shape) == 3:
-            #out = cv.LUT(img, table)[:, :, np.newaxis]
-            #else:
+            # if len(img.shape) == 3:
+            # out = cv.LUT(img, table)[:, :, np.newaxis]
+            # else:
             out = cv.LUT(img, table)
             return out
 
@@ -1766,8 +1767,6 @@ class Image(object):
                 r, g, b = cv.split(img)  # get b,g,r
                 img1 = cv.merge([b, g, r])  # switch it to rgb (OpenCV uses BGR)
             return img1
-
-
 
         @staticmethod
         def BGRtoHSV(img):
@@ -2322,6 +2321,19 @@ class Image(object):
             img_with_border = cv.copyMakeBorder(img, bordersize, bordersize, bordersize, bordersize, cv.BORDER_CONSTANT,
                                                 value=[0, 0, 0])
             return img_with_border
+
+        @staticmethod
+        def add_border(img, bordersize=25, color = [255,255,255]):
+            """Add border to image with color = [255,255,255]
+
+            :Parameters: image, bordersize
+            :Returns: image
+            """
+
+            img_with_border = cv.copyMakeBorder(img, bordersize, bordersize, bordersize, bordersize, cv.BORDER_CONSTANT,
+                                                value=color)
+            return img_with_border
+
 
         @staticmethod
         def add_blackmask(img, rect=[0, 0, 100, 100]):

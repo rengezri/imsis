@@ -157,7 +157,7 @@ class Analyze(object):
             plt.gcf().canvas.set_window_title('Find Edges - Image - 1st Derivative, 2nd Derivative')
             gridspec.GridSpec(4, 1)
             plt.subplot2grid((4, 1), (0, 0), colspan=1, rowspan=2)
-            st1 = "Edge position=({},{})".format(xpos,ypos)
+            st1 = "Edge position=({},{})".format(xpos, ypos)
             plt.title(st1)
             plt.imshow(rgb)
             plt.subplot2grid((4, 1), (2, 0), colspan=1, rowspan=1)
@@ -320,7 +320,8 @@ class Analyze(object):
         return img
 
     @staticmethod
-    def measure_lines(img, lines, linewidth=50, pixelsize=0, derivative=1, invert=False, roundangles=1, fontsize=40, verbose=True):
+    def measure_lines(img, lines, linewidth=50, pixelsize=0, derivative=1, invert=False, roundangles=1, fontsize=40,
+                      verbose=True):
         """Weasure the width of a line more accurately by applying edgefinders at both ends returns image and line measurements
         pixelsize=0 expresses measurement in pixels anything else results in a metric representation
         roundangles = 1 is no rounding, roundangles = 5 round to 5 degree angles
@@ -355,8 +356,9 @@ class Analyze(object):
                 print("Measure Line: {},{},{},{}".format(x0, y0, x1, y1))
             # widthout = np.abs(y0 - y1)*pixelsize
 
-            rgb, length2 = Analyze.add_singleline_measurement(rgb, x0, y0, x1, y1, pixelsize, linethickness=1, fontsize=fontsize,
-                                                        tiltcorrection=0,verbose=verbose)
+            rgb, length2 = Analyze.add_singleline_measurement(rgb, x0, y0, x1, y1, pixelsize, linethickness=1,
+                                                              fontsize=fontsize,
+                                                              tiltcorrection=0, verbose=verbose)
             measurementlist.append(length2)
 
         if verbose == True:
@@ -395,8 +397,9 @@ class Analyze(object):
         except:
             rgb = img
 
-        rgb, length2 = ims.Analyze.add_singleline_measurement(rgb, x0, y0, x1, y1, pixelsize, linethickness=1, fontsize=40,
-                                                        tiltcorrection=0)
+        rgb, length2 = ims.Analyze.add_singleline_measurement(rgb, x0, y0, x1, y1, pixelsize, linethickness=1,
+                                                              fontsize=40,
+                                                              tiltcorrection=0)
         ims.View.plot(rgb, 'Get Linewidth', window_title='Measure Linewidth')
         if verbose == True:
             print("get_linewidth: {}".format(length2))
@@ -567,7 +570,7 @@ class Analyze(object):
         return width, height, centerx, centery
 
     @staticmethod
-    def rectangle_pixels_to_percentage(im, rectangle):
+    def rectangle_pixels_to_percentage(im, rectangle, verbose=False):
         """convert a selected rectangle in pixels to a position and size (between 0 and 1 with 0.5 being the center)
 
         :Parameters: image rectangle
@@ -593,7 +596,8 @@ class Analyze(object):
         heightperc = height / imheight
         centerxperc = centerx / imwidth
         centeryperc = centery / imheight
-        print(widthperc, heightperc, centerxperc, centeryperc)
+        if verbose == True:
+            print(widthperc, heightperc, centerxperc, centeryperc)
         return widthperc, heightperc, centerxperc, centeryperc
 
     @staticmethod
@@ -780,11 +784,9 @@ class Analyze(object):
         img = np.array(pil_im)
         return img
 
-
-
     @staticmethod
     def add_line_measurements(img, lines, pixelsize=1.0, linethickness=1, fontsize=40, tiltcorrection=0,
-                             outline=True, verbose=True):
+                              outline=True, verbose=True):
         """Draw multiple line measurements on an image
 
         :Parameters: image, x0, y0, x1, y1, pixelsize=1.0, fontsize=40, tiltcorrection=0
@@ -799,20 +801,15 @@ class Analyze(object):
             x1 = line[1][0]
             y1 = line[1][1]
 
-            img1, newlength = Analyze.add_singleline_measurement(img1,x0,y0,x1,y1,pixelsize,linethickness,fontsize,tiltcorrection,outline,verbose)
+            img1, newlength = Analyze.add_singleline_measurement(img1, x0, y0, x1, y1, pixelsize, linethickness,
+                                                                 fontsize, tiltcorrection, outline, verbose)
             list_of_lengths.append(newlength)
-
-
 
         return img1, list_of_lengths
 
-
-
-
-
     @staticmethod
     def add_singleline_measurement(img, x0, y0, x1, y1, pixelsize=1.0, linethickness=1, fontsize=40, tiltcorrection=0,
-                             outline=True, verbose=True):
+                                   outline=True, verbose=True):
         """Add a lineMeasurement to an image
 
         :Parameters: image, x0, y0, x1, y1, pixelsize=1.0, fontsize=40, tiltcorrection=0
@@ -857,14 +854,13 @@ class Analyze(object):
             img = cv.arrowedLine(img, (x0, y0), (x1, y1), (0, 255, 0), thickness=linethickness, tipLength=tiplength)
             img = cv.arrowedLine(img, (x1, y1), (x0, y0), (0, 255, 0), thickness=linethickness, tipLength=tiplength)
 
-
-        if pixelsize ==0:
+        if pixelsize == 0:
             text = str(length2)
             print("pixels!!!")
             length_out = length2
         else:
             text = Analyze.__pretty_unit(length2 * pixelsize)
-            length_out = length2*pixelsize
+            length_out = length2 * pixelsize
 
         img = Analyze.add_text(img, cx, cy, text, fontsize, False)
         if verbose == True:
@@ -1195,10 +1191,33 @@ class Analyze(object):
         """
         img = ims.Image.Convert.toGray(img)
         result = False
-        if cv.countNonZero(img)==0:
-            result=True
+        if cv.countNonZero(img) == 0:
+            result = True
         return result
 
+    @staticmethod
+    def get_average_color(img):
+        """ Return average color in an image
+        :Parameters: image
+        :Returns: color
+        """
+        avg_color_per_row = np.average(img, axis=0)
+        avg_color = np.average(avg_color_per_row, axis=0)
+        return avg_color
+
+    @staticmethod
+    def get_dominant_color(img):
+        """ Return dominant color in an image
+        :Parameters: image
+        :Returns: color
+        """
+        if len(img.shape)==3:
+            colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
+            out = (colors[count.argmax()]).tolist()
+        else:
+            colors, count = np.unique(img.reshape(-1,1), axis=0, return_counts=True)
+            out = (colors[count.argmax()]).tolist()
+        return out
 
 
     class SharpnessDetection:
@@ -1699,13 +1718,11 @@ class Analyze(object):
             y0 = center[1] - round(size[1] * 0.5)
             y1 = center[1] + round(size[1] * 0.5)
 
-            if x0<0:
-                x0=0
-            if y0<0:
-                y0=0
+            if x0 < 0:
+                x0 = 0
+            if y0 < 0:
+                y0 = 0
             template = self.__crop(img, x0, y0, x1, y1)
-
-
 
             return template
 
@@ -1738,6 +1755,8 @@ class Analyze(object):
             img = ims.Image.Convert.toGray(img)
             img = ims.Image.Convert.to8bit(img)
 
+
+
             # crop to region and adjust template
             self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
                                                                                                   self.s_center_perc,
@@ -1746,13 +1765,13 @@ class Analyze(object):
 
             offnew = [-(self.s_center_pixels[0] - int(self.s_size_pixels[0] / 2)),
                       -(self.s_center_pixels[1] - int(self.s_size_pixels[1] / 2))]
-            print('offnew ', offnew)
+            # print('offnew ', offnew)
 
             # img1 = ims.Image.Tools.add_blackborder(img,50)
             # img1 = img
 
-            print(self.t_center_pixels, self.t_size_pixels)
-            print(self.s_center_pixels, self.s_size_pixels)
+            # print(self.t_center_pixels, self.t_size_pixels)
+            # print(self.s_center_pixels, self.s_size_pixels)
 
             # ims.View.plot_list([img,img1])
 
@@ -1866,7 +1885,7 @@ class Analyze(object):
             score = max_val
             return pt, score
 
-        def plot_matchresult(self, img, verbose=True):
+        def plot_matchresult(self, img, verbose=False):
             """plot matchresult of find feature showing template and search region
 
             :Parameters: img, verbose
@@ -1888,7 +1907,7 @@ class Analyze(object):
             rgb1 = self.plot_searchregion_and_template(img, verbose=verbose)
             return rgb1
 
-        def plot_searchregion_and_template(self, img, verbose=True):
+        def plot_searchregion_and_template(self, img, verbose=False):
             """plot search region and template for find feature
 
             :Parameters: img, verbose
@@ -1906,11 +1925,8 @@ class Analyze(object):
             xs1 = ims.Misc.multipleof2((self.s_center_perc[0] + self.s_size_perc[0] * 0.5) * w)
             ys1 = ims.Misc.multipleof2((self.s_center_perc[1] + self.s_size_perc[1] * 0.5) * h)
 
-
             # rgb = img.copy()
 
-            print("template: ", xt0, yt0, xt1, yt1)
-            print("searchregion: ", xs0, ys0, xs1, ys1)
             img = ims.Image.Convert.to8bit(img)
             try:
                 rgb = cv.cvtColor(img, cv.COLOR_GRAY2RGB)
@@ -1920,6 +1936,7 @@ class Analyze(object):
             rgb = cv.rectangle(rgb, (xt0, yt0), (xt1, yt1), (0, 255, 0), 2)
             rgb = cv.rectangle(rgb, (xs0, ys0), (xs1, ys1), (255, 255, 0), 2)
             if verbose == True:
+                print("template: {},{},{},{} searchregion: {},{},{},{}".format(xt0, yt0, xt1, yt1, xs0, ys0, xs1, ys1))
                 rgb1 = ims.Image.Convert.BGRtoRGB(rgb)
                 plt.plot()
                 plt.gcf().canvas.set_window_title('Find Feature')
@@ -1927,7 +1944,7 @@ class Analyze(object):
                 plt.show()
             return rgb
 
-        def set_searchregion_as_template_perc(self, img, perc=1.2):
+        def set_searchregion_as_template_perc(self, img, perc=1.2, verbose=False):
             """set searchregion as percentage of template size for find feature
 
             :Parameters: img, percentage
@@ -1939,5 +1956,5 @@ class Analyze(object):
                 self.s_size_perc[0] = 1
             if self.s_size_perc[1] > 1:
                 self.s_size_perc[1] = 1
-            print('searchregion,searchsize: ', self.s_center_perc, self.s_size_perc)
-
+            if verbose == True:
+                print('searchregion, searchsize: ', self.s_center_perc, self.s_size_perc)
