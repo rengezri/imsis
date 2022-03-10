@@ -1756,6 +1756,19 @@ class Analyze(object):
             img = ims.Image.Convert.to8bit(img)
 
 
+            '''
+            borderincrease=0
+            if (self._s_size_perc[0]<1 and self._s_size_perc[1]<1):
+                borderincrease=50
+                dom_col = ims.Analyze.get_dominant_color(img)
+                img = ims.Image.Tools.add_border(img, borderincrease,
+                                                  color=dom_col)  # adding 50 pixels to allow for matching close to borders
+                fct = (2*borderincrease)/(img.shape[0]-(2*borderincrease))+1
+                print(fct)
+                self.t_size_perc=[self.t_size_perc[0]*fct,self.t_size_perc[1]*fct]
+                self.t_center_perc=[self.t_center_perc[0]*fct,self.t_center_perc[1]*fct]
+                print('addborder')
+            '''
 
             # crop to region and adjust template
             self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
@@ -1765,6 +1778,8 @@ class Analyze(object):
 
             offnew = [-(self.s_center_pixels[0] - int(self.s_size_pixels[0] / 2)),
                       -(self.s_center_pixels[1] - int(self.s_size_pixels[1] / 2))]
+
+
             # print('offnew ', offnew)
 
             # img1 = ims.Image.Tools.add_blackborder(img,50)
@@ -1780,6 +1795,7 @@ class Analyze(object):
             self.t_center_pixels, self.t_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
                                                                                                   self.t_center_perc,
                                                                                                   self.t_size_perc)  # determine center of cutout template
+            #templateorigin = [(self.t_center_pixels[0] + offnew[0]), (self.t_center_pixels[1] + offnew[1])]
             templateorigin = [(self.t_center_pixels[0] + offnew[0]), (self.t_center_pixels[1] + offnew[1])]
 
             # ims.View.plot_list([img,img1,template])

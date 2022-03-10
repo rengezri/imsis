@@ -89,17 +89,23 @@ class Window(QtWidgets.QWidget):
             # table.setItem[ix.row(),1,"True"]
             # table.setCellWidget(ix.row(), 1, setchecked(checkboxval))
 
-        def onComboIndexChanged():
-            # print('test connect')
-            combokey = combo.currentText()
+        def onComboIndexChanged(value):
+            row = table.currentRow()
+            print(row)
+            dct = eval(properties[row][1])
+            actkey = list(dct.keys())[value]
+
             for key, val in dct.items():
                 dct[key] = False
-                if key == combokey:
+                if key ==actkey:
                     dct[key] = True
-            item[1] = str(dct)
+
+            properties[row][1] = str(dct)
 
         def onButtonClicked():
             allRows = table.rowCount()
+            print("")
+            print("start")
             for row in range(0, allRows):
                 try:
                     twi0 = table.item(row, 0).text()
@@ -108,6 +114,9 @@ class Window(QtWidgets.QWidget):
                     properties[row][1] = twi1
                 except:
                     pass  # skip bool
+
+            print("end")
+            print("")
             self.close()
 
         # Grid Layout
@@ -122,6 +131,10 @@ class Window(QtWidgets.QWidget):
 
         # Create Empty 5x5 Table
         table = QtWidgets.QTableWidget(self)
+
+        table.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.AdjustToContents)
+
         table.setRowCount(len(properties))
         table.setColumnCount(2)
         table.horizontalHeader().setVisible(False)
@@ -130,6 +143,8 @@ class Window(QtWidgets.QWidget):
         # Enter data onto Table
         horHeaders = []
         i = 0
+        highlighted_index = 0
+
         self.setFont(newfont)
         for item in data:
             table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
@@ -139,6 +154,7 @@ class Window(QtWidgets.QWidget):
                 checkbox = QtWidgets.QCheckBox()
                 if item[1] == 'True':
                     checkbox.setChecked(True)
+
                 else:
                     checkbox.setChecked(False)
                 table.setCellWidget(i, 1, checkbox)
@@ -147,6 +163,7 @@ class Window(QtWidgets.QWidget):
                 checkbox.clicked.connect(onCheckBoxStateChanged)
             else:
                 if (item[1][0] == '{' and item[1][-1] == '}'):
+                    combo = QtWidgets.QComboBox()
 
                     # set combo color style
 
@@ -157,25 +174,30 @@ class Window(QtWidgets.QWidget):
                     # cbstyle += " }"
                     cbstyle = " QComboBox {"
                     cbstyle += " background-color: white;"
+                    cbstyle += " font: 12px;"
                     cbstyle += "}"
 
                     dct = eval(item[1])
                     combolistkeys = dct.keys()
                     combolistvals = dct.values()
-                    # comboindex = np.where(combolistvals)[0]
+                    highlighted_index = Dialogs.dialog_dictionary_activeindex(dct)
+
                     combo_box_options = combolistkeys
-                    combo = QtWidgets.QComboBox()
                     combo.setStyleSheet(cbstyle)
 
                     for t in combo_box_options:
                         combo.addItem(t)
                     table.setCellWidget(i, 1, combo)
+                    combo.setCurrentIndex(highlighted_index)
+
                     combo.currentIndexChanged.connect(onComboIndexChanged)
                     # combo.currentIndexChanged.connect(onCurrentIndexChanged)
 
                 else:
                     table.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
             i = i + 1
+
+        #print(highlighted_index)
 
         # Add Header
         table.setHorizontalHeaderLabels(horHeaders)
@@ -198,7 +220,10 @@ class Window(QtWidgets.QWidget):
         if len(info) != 0:
             grid.addWidget(Qinfo)
         grid.addWidget(okButton)
-        self.setGeometry(200, 200, 600, newheight)
+        #self.setGeometry(200, 200, 600, newheight)
+
+        table.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.AdjustToContents)
 
         self.show()
         self.raise_()
@@ -430,21 +455,30 @@ class ComboBoxWidget(QtWidgets.QDialog):
         vbox = QtWidgets.QVBoxLayout(self)
 
         i = 0
-
+        highlighted_index=0
         # check state of all buttons, prevent that all buttons are disabled, if multiple buttons are selected last one is enabled.
         anybuttonselected = False
         for string, datatype in datalist:
             if datatype == True:
                 anybuttonselected = True
+                highlighted_index = i
+            i = i + 1
         if anybuttonselected == False:
             datalist[0][1] = True
 
+        i=0
         for string, datatype in datalist:
             self.button_group.addItem(string)
             # self.button_group.setId(self.button_name, i)
             # self.button_name.setChecked(datatype)
-            vbox.addWidget(self.button_group)
+            #vbox.addWidget(self.button_group)
+
             i = i + 1
+        vbox.addWidget(self.button_group)
+
+        #highlighted_index=2
+        #print('index', highlighted_index)
+        self.button_group.setCurrentIndex(highlighted_index)
 
         Qinfo = QtWidgets.QLabel(info)
 
@@ -602,6 +636,35 @@ class Dialogs(object):
 
         ret = table
         return ret
+
+    def dialog_dictionary_activekey(dct):
+        """Dialog combobox activekey
+
+        retrieve the active key from a combobox in dictionary form
+        :Parameters: dictionary
+        :Returns: key
+        """
+        for key, value in dct.items():
+            if value == True:
+                keyfinal = key
+        return keyfinal
+
+    def dialog_dictionary_activeindex(dct):
+        """Dialog combobox activekey
+
+        retrieve the active key from a combobox in dictionary form
+        :Parameters: dictionary
+        :Returns: key
+        """
+        index=0
+        valfinal = 0
+        for key, value in dct.items():
+            if value == True:
+                valfinal = index
+            index=index+1
+        return valfinal
+
+
 
     @staticmethod
     def dialog_comboboxlist(properties, windowtext="Checklist", info="", alwaysontop=True):
@@ -826,7 +889,7 @@ class Dialogs(object):
         window.dialog_error(text)
 
     @staticmethod
-    def dialog_propertygrid(properties, windowtext='Properties', verbose=False, info="", alwaysontop=True):
+    def dialog_propertygrid(properties, windowtext='Properties', verbose=True, info="", alwaysontop=True):
         """Simple property grid
 
         :Parameters: property_dictionary,text
@@ -847,6 +910,12 @@ class Dialogs(object):
 
         data = []
         datatypes = []
+
+        #avoid triggering errors due to empty strings
+        for k, v in properties.items():
+            if v == "":
+                properties.update({k: " "})
+
         for key, val in properties.items():
             data.append([key, str(val)])
             datatypes.append(type(val))
@@ -884,6 +953,7 @@ class Dialogs(object):
                     else:
                         if (datatypes[row] is dict):
                             properties[twi0] = eval(twi1)
+                            print('eval:' , eval(twi1))
                         else:
                             properties[twi0] = twi1  # not float or int therefore making it string
 
