@@ -1041,8 +1041,8 @@ class Analyze(object):
 
     @staticmethod
     def rectangle_percentage_to_pixels(img, t_center, t_size):
-        imwidth = img.shape[0]
-        imheight = img.shape[1]
+        imwidth = img.shape[1]
+        imheight = img.shape[0]
         t_center_pixels = [ims.Misc.multipleof2(imwidth * t_center[0]),
                            ims.Misc.multipleof2(imheight * t_center[1])]
         t_size_pixels = [ims.Misc.multipleof2(imwidth * t_size[0]), ims.Misc.multipleof2(imheight * t_size[1])]
@@ -1211,14 +1211,13 @@ class Analyze(object):
         :Parameters: image
         :Returns: color
         """
-        if len(img.shape)==3:
+        if len(img.shape) == 3:
             colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
             out = (colors[count.argmax()]).tolist()
         else:
-            colors, count = np.unique(img.reshape(-1,1), axis=0, return_counts=True)
+            colors, count = np.unique(img.reshape(-1, 1), axis=0, return_counts=True)
             out = (colors[count.argmax()]).tolist()
         return out
-
 
     class SharpnessDetection:
         # Ref: http: // radjkarl.github.io / imgProcessor / _modules / imgProcessor / measure / sharpness / parameters.html
@@ -1617,7 +1616,8 @@ class Analyze(object):
             self._t_size_pixels = [0, 0]
             self._s_center_pixels = [0, 0]
             self._s_size_pixels = [0, 0]
-            self._template_matcher = 3
+            self._template_matcher = 3  # 3=ccorr_normed, 5=ccoef_normed
+            self._apply_gradient = False
 
         @property
         def shift_in_pixels(self):
@@ -1648,6 +1648,10 @@ class Analyze(object):
             return self._template
 
         @property
+        def applygradient(self):
+            return self._apply_gradient
+
+        @property
         def t_center_pixels(self):
             return self._t_center_pixels
 
@@ -1666,6 +1670,10 @@ class Analyze(object):
         @property
         def template_matcher(self):
             return self._template_matcher
+
+        @property
+        def apply_gradient(self):
+            return self._apply_gradient
 
         @t_center_perc.setter
         def t_center_perc(self, value):
@@ -1703,9 +1711,16 @@ class Analyze(object):
         def s_size_pixels(self, value):
             self._s_size_pixels = value
 
+
+        #methods = ['cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
+        #                   'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED','zncc','ssd','sad']
         @template_matcher.setter
         def template_matcher(self, value):
             self._template_matcher = value
+
+        @apply_gradient.setter
+        def apply_gradient(self, value):
+            self._apply_gradient = value
 
         def __cut(self, img, center=[0, 0], size=[0, 0]):
             """Cut out image to create a template for template matching
@@ -1713,22 +1728,11 @@ class Analyze(object):
             :parameters: image, center=[0, 0], size=[0, 0]
             :Returns: image
             """
-            x0 = center[0] - round(size[0] * 0.5)
-            x1 = center[0] + round(size[0] * 0.5)
-            y0 = center[1] - round(size[1] * 0.5)
-            y1 = center[1] + round(size[1] * 0.5)
-
-            if x0 < 0:
-                x0 = 0
-            if y0 < 0:
-                y0 = 0
-            template = self.__crop(img, x0, y0, x1, y1)
-
+            template = ims.Image.cut(img, center, size)
             return template
 
         def __crop(self, img, x0, y0, x1, y1):
-            res = img[y0:y1, x0:x1]  # Crop from y0:y1,x0:x1
-            # print("Cropped region: (" , x0,y0,x1,y1,")")
+            res = ims.Image.crop(img, x0, y0, x1, y1)
             return res
 
         def run(self, img, verbose=True):
@@ -1739,36 +1743,15 @@ class Analyze(object):
             :Returns: -
             """
 
-            '''
-            cv::TemplateMatchModes { 
-            cv::TM_SQDIFF = 0, 
-            cv::TM_SQDIFF_NORMED = 1, 
-            cv::TM_CCORR = 2, 
-            cv::TM_CCORR_NORMED = 3, 
-            cv::TM_CCOEFF = 4, 
-            cv::TM_CCOEFF_NORMED = 5 
-            }      '''
-
             template = ims.Image.Convert.toGray(self.template)
             template = ims.Image.Convert.to8bit(template)
+            if self.applygradient == True:
+                template, angle = ims.Image.Process.gradient_image(template)
 
             img = ims.Image.Convert.toGray(img)
             img = ims.Image.Convert.to8bit(img)
-
-
-            '''
-            borderincrease=0
-            if (self._s_size_perc[0]<1 and self._s_size_perc[1]<1):
-                borderincrease=50
-                dom_col = ims.Analyze.get_dominant_color(img)
-                img = ims.Image.Tools.add_border(img, borderincrease,
-                                                  color=dom_col)  # adding 50 pixels to allow for matching close to borders
-                fct = (2*borderincrease)/(img.shape[0]-(2*borderincrease))+1
-                print(fct)
-                self.t_size_perc=[self.t_size_perc[0]*fct,self.t_size_perc[1]*fct]
-                self.t_center_perc=[self.t_center_perc[0]*fct,self.t_center_perc[1]*fct]
-                print('addborder')
-            '''
+            if self.applygradient == True:
+                img, angle = ims.Image.Process.gradient_image(img)
 
             # crop to region and adjust template
             self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
@@ -1779,26 +1762,10 @@ class Analyze(object):
             offnew = [-(self.s_center_pixels[0] - int(self.s_size_pixels[0] / 2)),
                       -(self.s_center_pixels[1] - int(self.s_size_pixels[1] / 2))]
 
-
-            # print('offnew ', offnew)
-
-            # img1 = ims.Image.Tools.add_blackborder(img,50)
-            # img1 = img
-
-            # print(self.t_center_pixels, self.t_size_pixels)
-            # print(self.s_center_pixels, self.s_size_pixels)
-
-            # ims.View.plot_list([img,img1])
-
-            # obsolete, self.t_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img, self.t_center_perc, self.t_size_perc)
-
             self.t_center_pixels, self.t_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
                                                                                                   self.t_center_perc,
                                                                                                   self.t_size_perc)  # determine center of cutout template
-            #templateorigin = [(self.t_center_pixels[0] + offnew[0]), (self.t_center_pixels[1] + offnew[1])]
             templateorigin = [(self.t_center_pixels[0] + offnew[0]), (self.t_center_pixels[1] + offnew[1])]
-
-            # ims.View.plot_list([img,img1,template])
 
             method = self.template_matcher
             showresult = False
@@ -1839,6 +1806,12 @@ class Analyze(object):
             img0 = ims.Image.Convert.to8bit(img0)
             img2 = ims.Analyze.add_text(img0, 0, 0, 'Input: drag a rectangle around the fiducial area.', 20)
             shapes = ims.Dialogs.select_areas(img2, 'Template matching input')
+            if not shapes:
+                print("Warning: Shape is not defined, taking 90% of full image")
+                shapes = [[(int(img0.shape[1]*0.1),int(img0.shape[0]*0.1)),(int(img0.shape[1]*0.9),int(img0.shape[0]*0.9))]]
+            if len(shapes)>1:
+                print("Warning: Multiple shapes defined, taking 90% of full image")
+                shapes = [[(int(img0.shape[1]*0.1),int(img0.shape[0]*0.1)),(int(img0.shape[1]*0.9),int(img0.shape[0]*0.9))]]
             widthperc, heightperc, centerxperc, centeryperc = ims.Analyze.rectangle_pixels_to_percentage(img0,
                                                                                                          shapes[0])
             t_center_perc = [centerxperc, centeryperc]
@@ -1880,19 +1853,34 @@ class Analyze(object):
             w, h = template.data.shape[1::-1]
 
             # All the 6 methods for comparison in a list
-            methods = ['cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
-                       'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED']
-
-            meth = methods[method]
-            methodn = eval(meth)
             # Apply template Matching
-            res = cv.matchTemplate(img, template, methodn)
-            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-            # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
-            if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
-                top_left = min_loc
+
+            # ims.View.plot_list([img,template])
+            if (method < 6):
+
+                methods = ['cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
+                           'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED']
+
+                meth = methods[method]
+                methodn = eval(meth)
+
+                res = cv.matchTemplate(img, template, methodn)
+                min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+                # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+                if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
+                    top_left = min_loc
+                else:
+                    top_left = max_loc
             else:
-                top_left = max_loc
+                if (method == 6):
+                    top_left, max_val = self._template_matching_zncc(img, template)
+                if (method == 7):
+                    top_left, max_val = self._template_matching_ssd(img, template)
+                if (method == 8):
+                    top_left, max_val = self._template_matching_sad(img, template)
+
+            print(top_left, max_val)
+            # sys.exit()
             bottom_right = (w, h)
             wd2 = int(w / 2)
             hd2 = int(h / 2)
@@ -1900,6 +1888,69 @@ class Analyze(object):
             # print("Position found:",pt)
             score = max_val
             return pt, score
+
+        def _template_matching_ssd(self, src, temp):
+            # https://github.com/PrinzEugen7/Lesson/tree/master/Python/opencv/image/template-matching
+            # for evaluation
+            h, w = src.shape
+            ht, wt = temp.shape
+
+            score = np.empty((h - ht, w - wt))
+
+            for dy in range(0, h - ht):
+                for dx in range(0, w - wt):
+                    diff = (src[dy:dy + ht, dx:dx + wt] - temp) ** 2
+                    score[dy, dx] = diff.sum()
+
+            pt = np.unravel_index(score.argmin(), score.shape)
+            scoreout = score.argmax()
+            return (pt[1], pt[0]), scoreout
+
+        def _template_matching_zncc(self, src, temp):
+            # https://github.com/PrinzEugen7/Lesson/tree/master/Python/opencv/image/template-matching
+            # for evaluation
+            h, w = src.shape
+            ht, wt = temp.shape
+
+            score = np.empty((h - ht, w - wt))
+
+            src = np.array(src, dtype="float")
+            temp = np.array(temp, dtype="float")
+
+            mu_t = np.mean(temp)
+
+            for dy in range(0, h - ht):
+                for dx in range(0, w - wt):
+                    roi = src[dy:dy + ht, dx:dx + wt]
+                    mu_r = np.mean(roi)
+                    roi = roi - mu_r
+                    temp = temp - mu_t
+
+                    num = np.sum(roi * temp)
+                    den = np.sqrt(np.sum(roi ** 2)) * np.sqrt(np.sum(temp ** 2))
+                    if den == 0: score[dy, dx] = 0
+                    score[dy, dx] = num / den
+
+            pt = np.unravel_index(score.argmin(), score.shape)
+            scoreout = score.argmax()
+            return (pt[1], pt[0]), scoreout
+
+        def _template_matching_sad(self, src, temp):
+            # https://github.com/PrinzEugen7/Lesson/tree/master/Python/opencv/image/template-matching
+            # for evaluation
+            h, w = src.shape
+            ht, wt = temp.shape
+
+            score = np.empty((h - ht, w - wt))
+
+            for dy in range(0, h - ht):
+                for dx in range(0, w - wt):
+                    diff = np.abs(src[dy:dy + ht, dx:dx + wt] - temp)
+                    score[dy, dx] = diff.sum()
+
+            pt = np.unravel_index(score.argmin(), score.shape)
+            scoreout = score.argmax()
+            return (pt[1], pt[0]), scoreout
 
         def plot_matchresult(self, img, verbose=False):
             """plot matchresult of find feature showing template and search region

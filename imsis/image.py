@@ -49,16 +49,6 @@ class Image(object):
         return img
 
     @staticmethod
-    def cut(img, center=[0, 0], size=[0, 0]):
-        """cut an image using the center and size [0..1]"""
-        x0 = center[0] - round(size[0] * 0.5)
-        x1 = center[0] + round(size[0] * 0.5)
-        y0 = center[1] - round(size[1] * 0.5)
-        y1 = center[1] + round(size[1] * 0.5)
-        template = Image.crop(img, int(x0), int(y0), int(x1), int(y1))
-        return template
-
-    @staticmethod
     def crop_rectangle(img, rect):
         """Crop an image using rectangle shape as input [(x0,y0),(x1,y1)]
 
@@ -205,6 +195,7 @@ class Image(object):
         return 20 * np.log10(PIXEL_MAX / n)
     '''
 
+    # implemented twice remove the 2nd one
     @staticmethod
     def cut(img, center=[0, 0], size=[0, 0]):
         """return a image cut out
@@ -216,7 +207,12 @@ class Image(object):
         x1 = center[0] + round(size[0] * 0.5)
         y0 = center[1] - round(size[1] * 0.5)
         y1 = center[1] + round(size[1] * 0.5)
-        template = Image.crop(img, x0, y0, x1, y1)
+
+        if x0 < 0:
+            x0 = 0
+        if y0 < 0:
+            y0 = 0
+        template = Image.crop(img, int(x0), int(y0), int(x1), int(y1))
         return template
 
     @staticmethod
@@ -2323,7 +2319,7 @@ class Image(object):
             return img_with_border
 
         @staticmethod
-        def add_border(img, bordersize=25, color = [255,255,255]):
+        def add_border(img, bordersize=25, color=[255, 255, 255]):
             """Add border to image with color = [255,255,255]
 
             :Parameters: image, bordersize
@@ -2333,7 +2329,6 @@ class Image(object):
             img_with_border = cv.copyMakeBorder(img, bordersize, bordersize, bordersize, bordersize, cv.BORDER_CONSTANT,
                                                 value=color)
             return img_with_border
-
 
         @staticmethod
         def add_blackmask(img, rect=[0, 0, 100, 100]):

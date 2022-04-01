@@ -236,9 +236,9 @@ class ImageStack:
             return s
 
         @staticmethod
-        def scroll(image0, zoomfactor=2,duration=5 * 15, horizontal=True,reverse=False):
+        def scroll_old(image0, zoomfactor=2,duration=5 * 15, horizontal=True,reverse=False):
             """
-            Scroll left
+            Scroll left - DEPRECIATED
             :Parameters: image0, zoomfactor
             :Returns: frames
             """
@@ -266,10 +266,45 @@ class ImageStack:
                         y = (int((i + 1) * step))/frame0.shape[1]
                     else:
                         y = (h - int((i + 1) * step))/frame0.shape[1]
-                image1 = ims.Image.zoom(image0,factor=2,cx=x,cy=y)
+                image1 = ims.Image.zoom(image0,factor=zoomfactor,cx=x,cy=y)
                 s.append(image1)
                 #Image.plot(image1)
+            return s
 
+        @staticmethod
+        def scroll(image0,image1, duration=5 * 15, horizontal=True,reverse=False):
+            """
+            Scroll left/right/top/down
+            :Parameters: image0, zoomfactor
+            :Returns: frames
+            """
+
+            s=[]
+            if horizontal == True:
+                if reverse==True:
+                    imagen = ims.Image.Tools.patches2image([image1,image0],cols=2,overlappx=0,whitebackground=False)
+                else:
+                    imagen = ims.Image.Tools.patches2image([image0,image1],cols=2,overlappx=0,whitebackground=False)
+                w = image0.shape[1]
+                x_speed = (w / duration)
+                y_speed=0
+                h = image0.shape[0]
+            else:
+                if reverse==True:
+                    imagen = ims.Image.Tools.patches2image([image1,image0],cols=1,overlappx=0,whitebackground=False)
+                else:
+                    imagen = ims.Image.Tools.patches2image([image0,image1],cols=1,overlappx=0,whitebackground=False)
+
+                h = image0.shape[0]
+                y_speed = (h / duration)
+                x_speed=0
+                w = image0.shape[1]
+
+            for i in range(0, duration):
+                x = int(max(0, min(w, 0 + round(x_speed * i))))
+                y = int(max(0, min(h, 0 + round(y_speed * i))))
+                imageout = imagen[y: y + h, x: x + w]
+                s.append(imageout)
             return s
 
 
