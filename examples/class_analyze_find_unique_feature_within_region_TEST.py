@@ -13,8 +13,8 @@ img0 = ims.Image.load(fn)
 img0 = ims.Image.Convert.toGray(img0)
 img0 = ims.Image.Convert.to16bit(img0)
 
-dom_col = ims.Analyze.get_dominant_color(img0)
-img0 = ims.Image.Tools.add_border(img0, 50,color=dom_col)  # adding 50 pixels to allow for matching close to borders
+#dom_col = ims.Analyze.get_dominant_color(img0)
+#img0 = ims.Image.Tools.add_border(img0, 50,color=dom_col)  # adding 50 pixels to allow for matching close to borders
 
 # create displaced image
 maxdrift = 200
