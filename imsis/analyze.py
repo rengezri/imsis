@@ -98,7 +98,7 @@ class Analyze(object):
 
     @staticmethod
     def find_edge(img, center, width, height, angle=0, pixelsize=1, derivative=1, invert=False, plotresult=True,
-                  verbose=True):
+                  verbose=True, autoclose=0):
         """Find edge
 
          Derivative 1 = first derivative, Derivative 2 = second derivative Derivative 3 = argmax
@@ -181,7 +181,15 @@ class Analyze(object):
             #  plt.grid(color='green', linestyle='--', linewidth=0.5)
 
             plt.tight_layout()
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
 
         return rgb, xpos, ypos
 
@@ -261,7 +269,7 @@ class Analyze(object):
         return cv.warpAffine(image, mapping, (width, height), flags=cv.WARP_INVERSE_MAP, borderMode=cv.BORDER_REPLICATE)
 
     @staticmethod
-    def get_lineprofile(img, center, width, height, angle=0, pixelsize=1, plotresult=True):
+    def get_lineprofile(img, center, width, height, angle=0, pixelsize=1, plotresult=True, autoclose=0):
         """Get line profile by cutting out an image
 
         :Parameters: image, center, width, height, angle=0, pixelsize=1, plotresult=True
@@ -296,7 +304,15 @@ class Analyze(object):
             plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
             #  plt.grid(color='green', linestyle='--', linewidth=0.5)
             plt.tight_layout()
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
         return x, y
 
     @staticmethod
@@ -321,7 +337,7 @@ class Analyze(object):
 
     @staticmethod
     def measure_lines(img, lines, linewidth=50, pixelsize=0, derivative=1, invert=False, roundangles=1, fontsize=40,
-                      verbose=True):
+                      verbose=True, autoclose=0):
         """Weasure the width of a line more accurately by applying edgefinders at both ends returns image and line measurements
         pixelsize=0 expresses measurement in pixels anything else results in a metric representation
         roundangles = 1 is no rounding, roundangles = 5 round to 5 degree angles
@@ -363,14 +379,14 @@ class Analyze(object):
 
         if verbose == True:
             print("measure lines: list of lines: {}".format(measurementlist))
-            ims.View.plot(rgb, 'Measure Lines', window_title='Measure Lines')
+            ims.View.plot(rgb, 'Measure Lines', window_title='Measure Lines', autoclose=autoclose)
 
         return rgb, measurementlist
 
     @staticmethod
     def measure_linewidth(img, center, width, height, angle, pixelsize=0, derivative=1, linethickness=1, invert=False,
                           plotresult=True,
-                          plotboundingbox=True, verbose=True):
+                          plotboundingbox=True, verbose=True, autoclose=0):
         """"Measure the width of a line more accurately by applying edgefinders at both ends. can measure lines under different angles
 
         :Parameters: image, lines, linewidth=50, pixelsize=1, derivative=1, invert=False, plotresult=True
@@ -400,7 +416,7 @@ class Analyze(object):
         rgb, length2 = ims.Analyze.add_singleline_measurement(rgb, x0, y0, x1, y1, pixelsize, linethickness=1,
                                                               fontsize=40,
                                                               tiltcorrection=0)
-        ims.View.plot(rgb, 'Get Linewidth', window_title='Measure Linewidth')
+        ims.View.plot(rgb, 'Get Linewidth', window_title='Measure Linewidth', autoclose=autoclose)
         if verbose == True:
             print("get_linewidth: {}".format(length2))
         return img4, length2
@@ -1074,7 +1090,7 @@ class Analyze(object):
         return err
 
     @staticmethod
-    def powerspectrum(image, verbose=True):
+    def powerspectrum(image, verbose=True, autoclose=0):
         """ Calculate the powerspectrum of an image
         :Parameters: image
         :Returns: powerspectrum
@@ -1152,7 +1168,18 @@ class Analyze(object):
             plt.semilogy(psd1D)
             plt.xlabel("Spatial Frequency")
             plt.ylabel("Power Spectrum")
-            plt.show()
+
+            if autoclose>0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+
+
 
         return psd1D
 
@@ -1974,7 +2001,7 @@ class Analyze(object):
             rgb1 = self.plot_searchregion_and_template(img, verbose=verbose)
             return rgb1
 
-        def plot_searchregion_and_template(self, img, verbose=False):
+        def plot_searchregion_and_template(self, img, verbose=False, autoclose=0):
             """plot search region and template for find feature
 
             :Parameters: img, verbose
@@ -2008,7 +2035,17 @@ class Analyze(object):
                 plt.plot()
                 plt.gcf().canvas.set_window_title('Find Feature')
                 plt.imshow(rgb1)
-                plt.show()
+
+                if autoclose > 0:
+                    try:
+                        plt.show(block=False)
+                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                    except:
+                        print("interrupted while waiting.")
+                    plt.close("all")
+                else:
+                    plt.show()
+
             return rgb
 
         def set_searchregion_as_template_perc(self, img, perc=1.2, verbose=False):

@@ -18,7 +18,7 @@ import os
 class View(object):
 
     @staticmethod
-    def plot(img, title='', window_title='Plot', save_image_filename=""):
+    def plot(img, title='', window_title='Plot', save_image_filename="",autoclose=0):
         """Plot a single image with title
 
         :Parameters: image, title, window_title, save_image_filename
@@ -43,10 +43,20 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        plt.show()
+
+
+        if autoclose>0:
+            try:
+                plt.show(block=False)
+                plt.pause(autoclose)  # 3 seconds, I use 1 usually
+            except:
+                print("interrupted while waiting.")
+            plt.close("all")
+        else:
+            plt.show()
 
     @staticmethod
-    def plot_list(imglist, titlelist=[''], window_title='Plot', save_image_filename=""):
+    def plot_list(imglist, titlelist=[''], window_title='Plot', save_image_filename="",autoclose=0):
         """Plot list of images and list of titles in single overview
 
         :Parameters: imagelist, titlelist, window_title, save_image_filename
@@ -95,12 +105,20 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        plt.show()
+        if autoclose>0:
+            try:
+                plt.show(block=False)
+                plt.pause(autoclose)  # 3 seconds, I use 1 usually
+            except:
+                print("interrupted while waiting.")
+            plt.close("all")
+        else:
+            plt.show()
 
     # cdf cumulative distribution function
     # plot image and histogram
     @staticmethod
-    def plot_with_histogram(img, title='', window_title='Plot', save_image_filename=""):
+    def plot_with_histogram(img, title='', window_title='Plot', save_image_filename="",autoclose=0):
         """Plot a single image with title and histogram
 
         :Parameters: image, title, window_title, save_image_filename
@@ -140,10 +158,18 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        plt.show()
+        if autoclose>0:
+            try:
+                plt.show(block=False)
+                plt.pause(autoclose)  # 3 seconds, I use 1 usually
+            except:
+                print("interrupted while waiting.")
+            plt.close("all")
+        else:
+            plt.show()
 
     @staticmethod
-    def plot_list_with_histogram(imglist, titlelist=[''], window_title='Plot', save_image_filename=""):
+    def plot_list_with_histogram(imglist, titlelist=[''], window_title='Plot', save_image_filename="",autoclose=0):
         """Plot list of images and list of titles in single overview with histogram
 
         :Parameters: imagelist, titlelist, window_title, save_image_filename
@@ -208,10 +234,18 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        plt.show()
+        if autoclose>0:
+            try:
+                plt.show(block=False)
+                plt.pause(autoclose)  # 3 seconds, I use 1 usually
+            except:
+                print("interrupted while waiting.")
+            plt.close("all")
+        else:
+            plt.show()
 
     @staticmethod
-    def plot_3dsurface(img, resize=0.15, save_image_filename=""):
+    def plot_3dsurface(img, resize=0.15, save_image_filename="", autoclose=0):
         """Plot a surface in 3D
 
         :Parameters: image, resize=0.15
@@ -226,4 +260,14 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        plt.show()
+        if autoclose>0:
+            try:
+                plt.show(block=False)
+                plt.pause(autoclose)  # 3 seconds, I use 1 usually
+            except:
+                print("interrupted while waiting.")
+            plt.close("all")
+        else:
+            plt.show()
+
+

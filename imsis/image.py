@@ -2350,7 +2350,7 @@ class Image(object):
             return result
 
         @staticmethod
-        def imageregistration(img1, img2):
+        def imageregistration(img1, img2,verbose=False):
             """
             Register 2 images using opencv ORB (Oriented FAST and rotated BRIEF)
             Initiate ORB detector
@@ -2378,8 +2378,9 @@ class Image(object):
             matches = sortMatches[0:128]
 
             img3 = cv.drawMatches(img1, kp1, img2, kp2, matches[:100], None, flags=2)
-            cv.imshow("Feature descriptor matching", img3)
-            cv.waitKey(0)
+            if verbose==True:
+                cv.imshow("Feature descriptor matching", img3)
+                cv.waitKey(0)
 
             image_1_points = np.zeros((len(matches), 1, 2), dtype=np.float32)
             image_2_points = np.zeros((len(matches), 1, 2), dtype=np.float32)

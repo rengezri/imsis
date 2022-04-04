@@ -25,6 +25,8 @@ fn = r".\images\spa_rice.tif"
 im_spa_rice = ims.Image.load(fn)
 im_spa_rice = ims.Image.Convert.to8bit(im_spa_rice)
 pixelsize = 0  # by default no units
+autoclose=1.2
+
 
 # generated image
 w = int(512)
@@ -52,7 +54,7 @@ img1b = ims.Image.Convert.toRGB(img1b)
 
 img4 = ims.Image.Process.cannyedge_auto(im_rice, 0.33)
 img4b, lines = ims.Analyze.hough_lines(img4, threshold=2, minlinelength=50, maxlinegap=5)
-ims.View.plot_list([im_rice, img4, img4b], ['Source', "CannyEdge", 'Hough Lines'], window_title="Hough Lines")
+ims.View.plot_list([im_rice, img4, img4b], ['Source', "CannyEdge", 'Hough Lines'], window_title="Hough Lines",autoclose=autoclose)
 
 image_identical = ims.Analyze.compare_image_identical(img1a, img1b)
 image_mse = ims.Analyze.compare_image_mse(img1a, img1b)
@@ -63,12 +65,10 @@ image_mse = ims.Analyze.compare_image_mse(img1a, img1a)
 print("Image A=C ? :", image_identical)
 print("Image A vs C MSE:", image_mse)
 ims.View.plot_list([img1a, img1b, img1a], ['Image A', 'Image B (noise added)', 'Image C'],
-                   window_title="Image Comparison")
+                   window_title="Image Comparison",autoclose=autoclose)
 
 image_empty = ims.Analyze.is_image_empty(img1a)
 print("Is image empty? ", image_empty)
-
-sys.exit()
 
 # LINE MEASUREMENTS
 vectors = [[(38, 14), (38, 80)]]
@@ -77,10 +77,10 @@ print(vectors[0])
 position, length, direction = ims.Analyze.vector_position_length_direction(vectors[0])
 
 img = im_spa_rice
-x, y = ims.Analyze.get_lineprofile(img, position, length, width, direction, pixelsize=1)
+x, y = ims.Analyze.get_lineprofile(img, position, length, width, direction, pixelsize=1,autoclose=autoclose)
 rgb, xpos, ypos = ims.Analyze.find_edge(img, position, width, length, angle=direction, pixelsize=1,
                                         derivative=1,
-                                        invert=True, plotresult=True)
+                                        invert=True, plotresult=True, autoclose=autoclose)
 
 vectors = [[(200, 205), (200, 293)], [(182, 51), (256, 52)]]
 position, length, direction = ims.Analyze.vector_position_length_direction(vectors[0])
@@ -90,10 +90,10 @@ img = im_spots
 img4, widthout = ims.Analyze.measure_linewidth(img, position, width, length, direction, pixelsize=pixelsize,
                                                derivative=1,
                                                linethickness=1, invert=True,
-                                               plotresult=True, plotboundingbox=True)
+                                               plotresult=True, plotboundingbox=True, autoclose=autoclose)
 
 img6, results = ims.Analyze.measure_lines(img, vectors, linewidth=50, pixelsize=pixelsize, derivative=1, invert=True,
-                                          verbose=False)
+                                          verbose=False, autoclose=autoclose)
 
 img = im_rice_gray
 # DRAWING TEXT AND MEASUREMENTS
@@ -107,21 +107,21 @@ img2_1 = ims.Analyze.add_text(img2_1, int(img.shape[1] * 0.5), int(img.shape[0] 
 img2_1 = ims.Analyze.add_scalebar(img2_1, pixelsize2)
 
 ims.View.plot(img2_1, '',
-              window_title="Draw measurements on image")
+              window_title="Draw measurements on image",autoclose=autoclose)
 
 # FINDING SPOTS
 
 img5 = im_spots
 
 img3, dx, dy = ims.Analyze.find_brightest_spot(img5, pixelsize=1)
-ims.View.plot_list([img5, img3], ["Source", "Brightest spot pos=({},{})".format(dx, dy)], window_title="Find Brightest Spot")
+ims.View.plot_list([img5, img3], ["Source", "Brightest spot pos=({},{})".format(dx, dy)], window_title="Find Brightest Spot",autoclose=autoclose)
 
 img3, dx, dy = ims.Analyze.find_contour_center(img5)
-ims.View.plot_list([img5, img3], ["Source", "Contour center pos=({},{})".format(dx, dy)], window_title="Find Contour Center")
+ims.View.plot_list([img5, img3], ["Source", "Contour center pos=({},{})".format(dx, dy)], window_title="Find Contour Center",autoclose=autoclose)
 
 img3, dx, dy = ims.Analyze.find_image_center_of_mass(img5)
 ims.View.plot_list([img5, img3], ["Source", "Center of mass pos=({},{})".format(dx, dy)],
-                   window_title="Find Image Center of Mass")
+                   window_title="Find Image Center of Mass",autoclose=autoclose)
 
 img2 = ims.Image.Adjust.thresholdrange(img, 3, 64)
 img2, mlist = ims.Analyze.measure_spheres(img, img2, pixelsize, areamin=50, areamax=100000)
@@ -135,7 +135,7 @@ shiftx = 5
 shifty = 5
 img1 = ims.Image.Transform.translate(img0, shiftx, shifty)
 img1 = ims.Image.Process.poisson_noise(img1)
-ims.View.plot_list([img0, img1], ["Source", "Destination pos=({},{})".format(shiftx, shifty)])
+ims.View.plot_list([img0, img1], ["Source", "Destination pos=({},{})".format(shiftx, shifty)],autoclose=autoclose)
 
 # SHARPNESS MEASUREMENTS
 
@@ -158,6 +158,6 @@ print("EHS: ", sharpness.entropy(img1))
 
 print("PSNR: ", ims.Analyze.PSNR(img1, img0))
 
-ims.Analyze.powerspectrum(im_blueberry_noise)
+ims.Analyze.powerspectrum(im_blueberry_noise, autoclose=autoclose)
 
 print('Ready.')

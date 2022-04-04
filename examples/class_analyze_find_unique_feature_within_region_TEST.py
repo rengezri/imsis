@@ -46,7 +46,8 @@ else:
 find_feature.set_searchregion_as_template_perc(img0, 2)
 
 # show a plot of the search region and the template
-rgb_before = find_feature.plot_searchregion_and_template(img0, verbose=True)
+autoclose=1.2
+rgb_before = find_feature.plot_searchregion_and_template(img0, verbose=True, autoclose=autoclose)
 
 # im3 = ims.Image.Tools.add_blackmask(im3,[120,50,500,300])
 # ims.View.plot(im3)
@@ -62,8 +63,9 @@ shift_in_pixels = find_feature.shift_in_pixels
 score = find_feature.score
 # print(shift_in_pixels, score)
 
+autoclose=2
 ims.View.plot_list([rgb_before, rgb_after],
                    ["source", "Target=({},{}) Score=({:.2f})".format(shift_in_pixels[0], shift_in_pixels[1], score),
-                    "difference"], window_title="Find Feature")
+                    "difference"], window_title="Find Feature", autoclose=autoclose)
 
 print("Ready.")
