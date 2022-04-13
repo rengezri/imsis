@@ -54,6 +54,9 @@ class View(object):
             plt.close("all")
         else:
             plt.show()
+            #plt.clf()
+            #plt.close()
+            #print('plot closed')
 
     @staticmethod
     def plot_list(imglist, titlelist=[''], window_title='Plot', save_image_filename="",autoclose=0):

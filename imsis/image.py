@@ -158,7 +158,8 @@ class Image(object):
         :Parameters: image, filename
         """
         try:
-            os.makedirs(os.path.dirname(fn), exist_ok=True)
+            if (os.path.dirname(fn)):
+               os.makedirs(os.path.dirname(fn), exist_ok=True) #mkdir if not empty
             cv.imwrite(fn, img)
             print("file saved. ", fn)
         except:

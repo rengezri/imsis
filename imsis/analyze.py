@@ -1675,10 +1675,6 @@ class Analyze(object):
             return self._template
 
         @property
-        def applygradient(self):
-            return self._apply_gradient
-
-        @property
         def t_center_pixels(self):
             return self._t_center_pixels
 
@@ -1772,12 +1768,12 @@ class Analyze(object):
 
             template = ims.Image.Convert.toGray(self.template)
             template = ims.Image.Convert.to8bit(template)
-            if self.applygradient == True:
+            if self.apply_gradient == True:
                 template, angle = ims.Image.Process.gradient_image(template)
 
             img = ims.Image.Convert.toGray(img)
             img = ims.Image.Convert.to8bit(img)
-            if self.applygradient == True:
+            if self.apply_gradient == True:
                 img, angle = ims.Image.Process.gradient_image(img)
 
             # crop to region and adjust template
@@ -1906,7 +1902,7 @@ class Analyze(object):
                 if (method == 8):
                     top_left, max_val = self._template_matching_sad(img, template)
 
-            print(top_left, max_val)
+            #print(top_left, max_val)
             # sys.exit()
             bottom_right = (w, h)
             wd2 = int(w / 2)
@@ -2062,3 +2058,7 @@ class Analyze(object):
                 self.s_size_perc[1] = 1
             if verbose == True:
                 print('searchregion, searchsize: ', self.s_center_perc, self.s_size_perc)
+            #calculate same but in pixels
+            self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
+                                                                                                  self.s_center_perc,
+                                                                                                  self.s_size_perc)

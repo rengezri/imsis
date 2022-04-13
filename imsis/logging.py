@@ -21,7 +21,8 @@ class Logging(object):
         :Parameters: path, text
         """
 
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        if (os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename), exist_ok=True)  # mkdir if not empty
 
         sttime = datetime.now().strftime('%Y%m%d %H:%M:%S,')
         fn = filename

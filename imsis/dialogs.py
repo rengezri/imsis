@@ -202,9 +202,20 @@ class Window(QtWidgets.QWidget):
         # Add Header
         table.setHorizontalHeaderLabels(horHeaders)
 
-        # Adjust size of Table
+        # Adjust size of Table, first column adjusted to text, 2nd column adjusted to max 400
         table.resizeColumnsToContents()
         table.resizeRowsToContents()
+        w0 = table.columnWidth(0)
+        w1 = table.columnWidth(1)
+        w0=int(w0*1.1)
+        w1=int(w1*1.2)
+        #print(w0,w1)
+        if w0>400:
+            w0=400
+        if w1>400:
+            w1=400
+        table.setColumnWidth(0, w0)
+        table.setColumnWidth(1, w1)
 
         # Add Table to Grid
         grid.addWidget(table, 0, 0)
@@ -222,8 +233,12 @@ class Window(QtWidgets.QWidget):
         grid.addWidget(okButton)
         #self.setGeometry(200, 200, 600, newheight)
 
+        #table.setSizeAdjustPolicy(
+        #    QtWidgets.QAbstractScrollArea.AdjustToContents)
+
         table.setSizeAdjustPolicy(
-            QtWidgets.QAbstractScrollArea.AdjustToContents)
+            QtWidgets.QAbstractScrollArea.AdjustToContentsOnFirstShow)
+
 
         self.show()
         self.raise_()
@@ -579,6 +594,7 @@ class ImageListViewForm(QtWidgets.QMainWindow):
 
 
 class Dialogs(object):
+
     # DIALOGS QT
     @staticmethod
     def dialog_ok_cancel(text, windowtext="Confirm", alwaysontop=True):
@@ -587,7 +603,12 @@ class Dialogs(object):
         :Parameters: title, text
         :Returns: result
         """
-        app = QtWidgets.QApplication(sys.argv)
+
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
+
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -612,7 +633,10 @@ class Dialogs(object):
             print(ret)
 
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
 
         datalist = []
         for key, val in properties.items():
@@ -683,7 +707,10 @@ class Dialogs(object):
             print(ret)
 
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
 
         datalist = []
         for key, val in properties.items():
@@ -725,7 +752,10 @@ class Dialogs(object):
             print(ret)
 
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
 
         datalist = []
         for key, val in properties.items():
@@ -766,7 +796,11 @@ class Dialogs(object):
 
         """
 
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
+
         window = MultiButtonWidget(listbuttons, windowtext, info)
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -794,7 +828,10 @@ class Dialogs(object):
         """
         entry_type = type(input)
 
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -834,7 +871,10 @@ class Dialogs(object):
 
         :Parameters: text
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -847,7 +887,10 @@ class Dialogs(object):
         This is a multi-line textbox
         :Parameters: text
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         window.dialog_textbox(windowtext, text)
         window.setWindowTitle(windowtext)
@@ -864,7 +907,10 @@ class Dialogs(object):
         This is a multi-line textbox, input is a HTML string
         :Parameters: text
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         window.dialog_textbox_html(windowtext, text)
         window.setWindowTitle(windowtext)
@@ -881,7 +927,10 @@ class Dialogs(object):
 
         :Parameters: text
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -903,7 +952,10 @@ class Dialogs(object):
             print(propertiesafter)
 
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -970,7 +1022,10 @@ class Dialogs(object):
         :Parameters: path, text
         :Returns: path
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -986,7 +1041,10 @@ class Dialogs(object):
         :Parameters: path, text
         :Returns: path
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -2008,7 +2066,10 @@ class Dialogs(object):
 
         :Returns: list of urls
         """
-        app = QtWidgets.QApplication(sys.argv)
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
         window = ImageListViewForm()
 
         if alwaysontop == True:
