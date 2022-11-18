@@ -162,6 +162,7 @@ class Analyze(object):
             plt.imshow(rgb)
             plt.subplot2grid((4, 1), (2, 0), colspan=1, rowspan=1)
             plt.plot(xn, yn)
+            plt.axvline(x=yf,color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
             plt.grid(b=True, which='major', color='#666666', linestyle='-')
@@ -172,6 +173,7 @@ class Analyze(object):
 
             plt.subplot2grid((4, 1), (3, 0), colspan=1, rowspan=1)
             plt.plot(xn, y2)
+            plt.axvline(x=yf,color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
             plt.grid(b=True, which='major', color='#666666', linestyle='-')

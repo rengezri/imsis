@@ -1015,11 +1015,11 @@ class Dialogs(object):
         return properties
 
     @staticmethod
-    def openfile_dialog(path='/', windowtext='Open File Dialog', alwaysontop=True):
+    def openfile_dialog(path='/', windowtext='Open File Dialog',filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True):
         """
         Open file dialog
 
-        :Parameters: path, text
+        :Parameters: path, text, filter, alwaysontop
         :Returns: path
         """
         #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
@@ -1030,8 +1030,28 @@ class Dialogs(object):
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(window, windowtext, path)
+        filename, _filter = QtWidgets.QFileDialog.getOpenFileName(window, windowtext, path,filter)
         return filename
+
+    @staticmethod
+    def savefile_dialog(path='/', windowtext='Save File Dialog',filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True):
+        """
+        Save file dialog
+
+        :Parameters: path, text, filter, alwaysontop
+        :Returns: path
+        """
+        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
+        window = Window()
+        if alwaysontop == True:
+            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        filename, _filter = QtWidgets.QFileDialog.getSaveFileName(window, windowtext, path, filter)
+        return filename
+
 
     @staticmethod
     def openfolder_dialog(path='/', windowtext='Open File Dialog', alwaysontop=True):

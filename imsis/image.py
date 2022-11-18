@@ -256,6 +256,7 @@ class Image(object):
         a = img0
         b = img1
         beta = 1 - alpha
+        gamma=0
         out = cv.addWeighted(a, alpha, b, beta, gamma)
         return out
 
@@ -2070,7 +2071,7 @@ class Image(object):
                 if (cols > len(images)):
                     cols = len(images)
 
-                rows = int(len(images) / cols)
+                rows = int(len(images) / cols + 0.5)
                 if (rows * cols) < len(images):
                     cols = cols + (len(images) - (rows * cols))  # number of total images should be correct
 
