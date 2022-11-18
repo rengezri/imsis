@@ -29,7 +29,7 @@ overlay, out, cntsval,sizedistout = ims.Analyze.feature_size_distribution(img, t
 # ims.View.plot(overlay, '')
 # ims.View.plot(out, '')
 
-autoclose=2
+autoclose=0
 ims.View.plot_list([overlay, out], ['overlay', 'out'], window_title='Feature size distribution', autoclose=autoclose)
 print(sizedistout)
 ims.Misc.multicolumnlist2textfile(r'.\output\feature size distribution.csv', sizedistout)

@@ -11,6 +11,16 @@ import collections
 
 print("GUI Dialogs")
 
+path = os.getcwd()
+filename = ims.Dialogs.openfile_dialog(path, 'Open File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True)
+print(filename)
+
+path = os.getcwd()
+filename = ims.Dialogs.savefile_dialog(path, 'Save File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True)
+print(filename)
+
+
+
 items = collections.OrderedDict([('Left', True), ('Right', False), ('Up', True)])  # ordered
 print(items)
 ret = ims.Dialogs.dialog_checklist(items)
@@ -43,9 +53,6 @@ ims.Dialogs.error('An error occured.')
 out = ims.Dialogs.dialog_ok_cancel('Would you like to continue?', 'Confirmation Dialog')
 print(out)
 
-path = os.getcwd()
-filename = ims.Dialogs.openfile_dialog(path, 'Open File Dialog')
-print(filename)
 
 path = os.getcwd()
 folder = ims.Dialogs.openfolder_dialog(path, 'Open Folder Dialog')
