@@ -159,7 +159,7 @@ class Image(object):
         """
         try:
             if (os.path.dirname(fn)):
-               os.makedirs(os.path.dirname(fn), exist_ok=True) #mkdir if not empty
+                os.makedirs(os.path.dirname(fn), exist_ok=True)  # mkdir if not empty
             cv.imwrite(fn, img)
             print("file saved. ", fn)
         except:
@@ -256,7 +256,7 @@ class Image(object):
         a = img0
         b = img1
         beta = 1 - alpha
-        gamma=0
+        gamma = 0
         out = cv.addWeighted(a, alpha, b, beta, gamma)
         return out
 
@@ -625,16 +625,18 @@ class Image(object):
 
         @staticmethod
         def FD_bandpass_filter(img, D0=5, w=10, bptype=0):
+            if D0 < 1:
+                D0 = 1
 
             gray = Image.Convert.toGray(img)
-            kernel = Image.FilterKernels.ideal_bandpass_kernel(gray, D0, w)
+            gray_fft = np.fft.fft2(gray)
+            gray_fftshift = np.fft.fftshift(gray_fft)
             if bptype == 1:
                 kernel = Image.FilterKernels.gaussian_bandpass_kernel(gray, D0, w)
             elif bptype == 2:
                 kernel = Image.FilterKernels.butterworth_bandpass_kernel(gray, D0, w)
-            gray = np.float64(gray)
-            gray_fft = np.fft.fft2(gray)
-            gray_fftshift = np.fft.fftshift(gray_fft)
+            else:
+                kernel = Image.FilterKernels.ideal_bandpass_kernel(gray, D0, w)
             dst_filtered = np.multiply(kernel, gray_fftshift)
             dst_ifftshift = np.fft.ifftshift(dst_filtered)
             dst_ifft = np.fft.ifft2(dst_ifftshift)
@@ -921,6 +923,8 @@ class Image(object):
             noise_img = np.clip(noise_img, 0, 255).astype(np.uint8)
             return noise_img
 
+        '''
+        #slow method
         @staticmethod
         def salt_and_pepper_noise(image, prob=0.01):
             """Add salt and pepper noise
@@ -940,6 +944,22 @@ class Image(object):
                     else:
                         output[i][j] = image[i][j]
             return output
+        '''
+
+        def salt_and_pepper_noise(image, prob=0.01):
+            """Add salt and pepper noise to an image
+
+            :Parameters:
+                - image: numpy array of shape (height, width, channels)
+                - prob: probability of adding noise (default is 0.01)
+
+            :Returns: image with added noise
+            """
+            black, white = np.array([0, 0, 0], dtype='uint8'), np.array([255, 255, 255], dtype='uint8')
+            probs = np.random.random(image.shape[:2])
+            image[probs < (prob / 2)] = black
+            image[probs > 1 - (prob / 2)] = white
+            return image
 
         @staticmethod
         def poisson_noise(img, prob=0.25):
@@ -1511,7 +1531,7 @@ class Image(object):
         # Zhang-Suen Thinning Algorithm - https://github.com/linbojin/Skeletonization-by-Zhang-Suen-Thinning-Algorithm
         # note: slow filter
         @staticmethod
-        def thinning(img):
+        def zhang_suen_thinning(img):
             """Applies the Zhang-Suen thinning algorithm.
 
             :Parameters: image
@@ -1565,6 +1585,58 @@ class Image(object):
                 for x, y in changing2:
                     img_Thinned[x][y] = 0
             return img_Thinned
+
+        '''
+        @staticmethod
+        def zhang_suen_thinning2(img):
+
+            def neighbours_vec(image):
+                return image[2:, 1:-1], image[2:, 2:], image[1:-1, 2:], image[:-2, 2:], image[:-2, 1:-1], image[:-2,
+                                                                                                          :-2], image[
+                                                                                                                1:-1,
+                                                                                                                :-2], image[
+                                                                                                                      2:,
+                                                                                                                      :-2]
+
+            def transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9):
+                return ((P3 - P2) > 0).astype(int) + ((P4 - P3) > 0).astype(int) + \
+                       ((P5 - P4) > 0).astype(int) + ((P6 - P5) > 0).astype(int) + \
+                       ((P7 - P6) > 0).astype(int) + ((P8 - P7) > 0).astype(int) + \
+                       ((P9 - P8) > 0).astype(int) + ((P2 - P9) > 0).astype(int)
+
+            def zhangSuen_vec(image, iterations):
+                for iter in range(1, iterations):
+                    # step 1
+                    P2, P3, P4, P5, P6, P7, P8, P9 = neighbours_vec(image)
+                    condition0 = image[1:-1, 1:-1]
+                    condition4 = P4 * P6 * P8
+                    condition3 = P2 * P4 * P6
+                    condition2 = transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9) == 1
+                    condition1 = (2 <= P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9) * (
+                                P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 <= 6)
+                    cond = (condition0 == 1) * (condition4 == 0) * (condition3 == 0) * (condition2 == 1) * (
+                                condition1 == 1)
+                    changing1 = np.where(cond == 1)
+                    image[changing1[0] + 1, changing1[1] + 1] = 0
+                    # step 2
+                    P2, P3, P4, P5, P6, P7, P8, P9 = neighbours_vec(image)
+                    condition0 = image[1:-1, 1:-1]
+                    condition4 = P2 * P6 * P8
+                    condition3 = P2 * P4 * P8
+                    condition2 = transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9) == 1
+                    condition1 = (2 <= P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9) * (
+                                P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 <= 6)
+                    cond = (condition0 == 1) * (condition4 == 0) * (condition3 == 0) * (condition2 == 1) * (
+                                condition1 == 1)
+                    changing2 = np.where(cond == 1)
+                    image[changing2[0] + 1, changing2[1] + 1] = 0
+                return image
+
+            image = zhangSuen_vec(img, 1)
+            return image
+        '''
+
+
 
         @staticmethod
         def morphology_erode(img, kernel=5):
@@ -1837,8 +1909,8 @@ class Image(object):
             return kernel_matrix
 
         @staticmethod
-        def ideal_bandpass_kernel(img, D0=32, w=9):
-            rows, cols = img.shape
+        def ideal_bandpass_kernel2(img, D0=32, w=9):
+            rows, cols = img.shape[:2]
             crow, ccol = int(rows / 2), int(cols / 2)
             mask = np.ones((rows, cols), np.uint8)
             for i in range(0, rows):
@@ -1849,6 +1921,26 @@ class Image(object):
                     else:
                         mask[i, j] = 0
             kernel = mask
+            return kernel
+
+        def ideal_bandpass_kernel(img, D0=32, w=9):
+            rows, cols = img.shape[:2]
+            crow, ccol = rows // 2, cols // 2
+
+            # Create a meshgrid of row and column indices
+            rows_idx, cols_idx = np.ogrid[:rows, :cols]
+
+            # Calculate the distance from the center of the image
+            distance = np.sqrt((rows_idx - crow) ** 2 + (cols_idx - ccol) ** 2)
+
+            # Create a mask with ones within the specified distance from the center
+            mask = np.zeros((rows, cols), np.uint8)
+            mask[(distance >= D0 - w / 2) & (distance <= D0 + w / 2)] = 1
+
+            resized_kernel = cv.resize(mask, (img.shape[1], img.shape[0]))
+
+            # Multiply the mask with the bandpass kernel to create the final kernel
+            kernel = mask * resized_kernel
             return kernel
 
         @staticmethod
@@ -2352,7 +2444,7 @@ class Image(object):
             return result
 
         @staticmethod
-        def imageregistration(img1, img2,verbose=False):
+        def imageregistration(img1, img2, verbose=False):
             """
             Register 2 images using opencv ORB (Oriented FAST and rotated BRIEF)
             Initiate ORB detector
@@ -2380,7 +2472,7 @@ class Image(object):
             matches = sortMatches[0:128]
 
             img3 = cv.drawMatches(img1, kp1, img2, kp2, matches[:100], None, flags=2)
-            if verbose==True:
+            if verbose == True:
                 cv.imshow("Feature descriptor matching", img3)
                 cv.waitKey(0)
 
