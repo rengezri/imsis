@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
-'''
+"""
+This file is part of IMSIS
+Licensed under the MIT license:
+http://www.opensource.org/licenses/MIT-license
+
 Class Image 2patch, 2image
-'''
+"""
 
 import os
 

@@ -1,6 +1,10 @@
-'''
+"""
+This file is part of IMSIS
+Licensed under the MIT license:
+http://www.opensource.org/licenses/MIT-license
+
 Find feature
-'''
+"""
 
 import os
 import imsis as ims

@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
-'''
+"""
+This file is part of IMSIS
+Licensed under the MIT license:
+http://www.opensource.org/licenses/MIT-license
+
 class analyze feature distribution test
 
-'''
+"""
 
 import os
 
