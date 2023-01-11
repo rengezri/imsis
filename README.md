@@ -23,6 +23,7 @@ Requirements
 
 IMSIS requires the following packages
 
+- Python >3.5
 - numpy 1.13.3
 - scipy 1.1.0
 - matplotlib 2.0.0
@@ -35,9 +36,9 @@ Requirements documentation
 
 IMSIS Documentation building requires the following additional packages
 
-- sphinx
-- sphinx_rtd_theme
-- rinohtype
+- sphinx 5.3.0 (Python 3.10)
+- sphinx_rtd_theme 1.1.1 (Python 3.10)
+- rinohtype 0.5.4 (Python 3.10)
 
 Documentation can be automatically generated with python build_docs.py
 
