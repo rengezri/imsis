@@ -9,10 +9,13 @@ This module contains methods to analyze images
 """
 
 import math
+import time
 
 import cv2 as cv
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
 import numpy as np
 
 import imsis as ims
@@ -25,29 +28,59 @@ import sys
 
 import scipy.stats as stats
 from scipy import fftpack
+import random as rng
+from collections import deque
+
+rng.seed(12345)
 
 colors = [
+    [255, 255, 128],
     [255, 255, 64],
-    [255, 64, 255],
-    [192, 255, 64],
-    [192, 64, 255],
+    [255, 192, 192],
+    [255, 192, 128],
     [255, 192, 64],
-    [255, 64, 192],
-    [192, 192, 64],
-    [192, 64, 192],
-    [128, 255, 64],
-    [128, 64, 255],
+    [255, 128, 192],
+    [255, 128, 128],
     [255, 128, 64],
+    [255, 64, 192],
     [255, 64, 128],
-    [128, 192, 64],
-    [128, 64, 192],
-    [192, 128, 64],
-    [192, 64, 128],
     [255, 64, 64],
-    [128, 128, 64],
-    [128, 64, 128],
+    [192, 255, 192],
+    [192, 255, 128],
+    [192, 255, 64],
+    [192, 192, 255],
+    [192, 192, 128],
+    [192, 192, 64],
+    [192, 128, 192],
+    [192, 128, 128],
+    [192, 128, 64],
+    [192, 64, 192],
+    [192, 64, 128],
     [192, 64, 64],
+    [128, 255, 192],
+    [128, 255, 128],
+    [128, 255, 64],
+    [128, 192, 192],
+    [128, 192, 128],
+    [128, 192, 64],
+    [128, 128, 192],
+    [128, 128, 255],
+    [128, 128, 64],
+    [128, 64, 192],
+    [128, 64, 128],
     [128, 64, 64],
+    [64, 255, 192],
+    [64, 255, 128],
+    [64, 255, 64],
+    [64, 192, 192],
+    [64, 192, 128],
+    [64, 192, 64],
+    [64, 128, 192],
+    [64, 128, 255],
+    [64, 128, 64],
+    [64, 64, 192],
+    [64, 64, 128],
+    [64, 64, 255]
 ]
 
 
@@ -162,7 +195,7 @@ class Analyze(object):
             plt.imshow(rgb)
             plt.subplot2grid((4, 1), (2, 0), colspan=1, rowspan=1)
             plt.plot(xn, yn)
-            plt.axvline(x=yf,color='g', linestyle='--')
+            plt.axvline(x=yf, color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
             plt.grid(b=True, which='major', color='#666666', linestyle='-')
@@ -173,7 +206,7 @@ class Analyze(object):
 
             plt.subplot2grid((4, 1), (3, 0), colspan=1, rowspan=1)
             plt.plot(xn, y2)
-            plt.axvline(x=yf,color='g', linestyle='--')
+            plt.axvline(x=yf, color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
             plt.grid(b=True, which='major', color='#666666', linestyle='-')
@@ -965,6 +998,8 @@ class Analyze(object):
         graph shows the size distribution
         cntsSorted contains the list of contours
 
+        DEPRECIATED - replaced by class FeatureSizeDistribution
+
         :Parameters: original_image, threshold_image
         :Returns: overlay, out, cntsSorted, (area, colorvalue)
         """
@@ -1171,7 +1206,7 @@ class Analyze(object):
             plt.xlabel("Spatial Frequency")
             plt.ylabel("Power Spectrum")
 
-            if autoclose>0:
+            if autoclose > 0:
                 try:
                     plt.show(block=False)
                     plt.pause(autoclose)  # 3 seconds, I use 1 usually
@@ -1180,8 +1215,6 @@ class Analyze(object):
                 plt.close("all")
             else:
                 plt.show()
-
-
 
         return psd1D
 
@@ -1736,8 +1769,7 @@ class Analyze(object):
         def s_size_pixels(self, value):
             self._s_size_pixels = value
 
-
-        #methods = ['cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
+        # methods = ['cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
         #                   'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED','zncc','ssd','sad']
         @template_matcher.setter
         def template_matcher(self, value):
@@ -1833,10 +1865,12 @@ class Analyze(object):
             shapes = ims.Dialogs.select_areas(img2, 'Template matching input')
             if not shapes:
                 print("Warning: Shape is not defined, taking 90% of full image")
-                shapes = [[(int(img0.shape[1]*0.1),int(img0.shape[0]*0.1)),(int(img0.shape[1]*0.9),int(img0.shape[0]*0.9))]]
-            if len(shapes)>1:
+                shapes = [[(int(img0.shape[1] * 0.1), int(img0.shape[0] * 0.1)),
+                           (int(img0.shape[1] * 0.9), int(img0.shape[0] * 0.9))]]
+            if len(shapes) > 1:
                 print("Warning: Multiple shapes defined, taking 90% of full image")
-                shapes = [[(int(img0.shape[1]*0.1),int(img0.shape[0]*0.1)),(int(img0.shape[1]*0.9),int(img0.shape[0]*0.9))]]
+                shapes = [[(int(img0.shape[1] * 0.1), int(img0.shape[0] * 0.1)),
+                           (int(img0.shape[1] * 0.9), int(img0.shape[0] * 0.9))]]
             widthperc, heightperc, centerxperc, centeryperc = ims.Analyze.rectangle_pixels_to_percentage(img0,
                                                                                                          shapes[0])
             t_center_perc = [centerxperc, centeryperc]
@@ -1904,7 +1938,7 @@ class Analyze(object):
                 if (method == 8):
                     top_left, max_val = self._template_matching_sad(img, template)
 
-            #print(top_left, max_val)
+            # print(top_left, max_val)
             # sys.exit()
             bottom_right = (w, h)
             wd2 = int(w / 2)
@@ -2060,7 +2094,367 @@ class Analyze(object):
                 self.s_size_perc[1] = 1
             if verbose == True:
                 print('searchregion, searchsize: ', self.s_center_perc, self.s_size_perc)
-            #calculate same but in pixels
+            # calculate same but in pixels
             self.s_center_pixels, self.s_size_pixels = ims.Analyze.rectangle_percentage_to_pixels(img,
                                                                                                   self.s_center_perc,
                                                                                                   self.s_size_perc)
+
+    class FeatureProperties(object):
+
+        propertynames = ['Area',
+                         'EquivalentDiameter',
+                         'Orientation',
+                         'MajorAxisLength',
+                         'MinorAxisLength',
+                         'Perimeter',
+                         'XCoord',
+                         'YCoord',
+                         'Solidity',
+                         'BoundingBoxWidth',
+                         'BoundingBoxHeight',
+                         'BoundingBoxArea',
+                         'ConvexHullArea',
+                         'MinIntensity',
+                         'MeanIntensity',
+                         'MaxIntensity',
+                         'Extent',
+                         'AspectRatio',
+                         'ColorValue',
+                         'Filename']
+
+        @staticmethod
+        def _process_contours(orig, thresh, contours, minarea, maxarea, filename):
+            cntsSorted = sorted(contours, key=lambda x: cv.contourArea(x))
+
+            imggray = ims.Image.Convert.toGray(orig)
+
+            img5 = ims.Image.Convert.toRGB(orig)
+            img5b = img5.copy()
+
+            if maxarea == -1:
+                maxarea = orig.shape[0] * orig.shape[1]
+
+            featureproperties = []
+            coords = []
+            cntsSorted_new = []
+            for i in range(len(cntsSorted)):
+                failed = False
+                try:
+                    ((centx, centy), (width, height), angle) = cv.fitEllipse(cntsSorted[i])
+                    orientation = angle
+                    majoraxislength = width
+                    minoraxislength = height
+
+                    area = cv.contourArea(cntsSorted[i])
+                    hull = cv.convexHull(cntsSorted[i])
+                    hull_area = cv.contourArea(hull)
+                    xcoord = 0
+                    ycoord = 0
+
+                    if (area < minarea) or (area > maxarea):
+                        failed = True
+
+                    x, y, w, h = cv.boundingRect(cntsSorted[i])
+                    bboxwidth = w
+                    bboxheight = h
+                    bboxarea = bboxwidth * bboxheight
+                    if bboxarea > (orig.shape[0] * orig.shape[1]) * 0.98:
+                        failed = True  # entire image is selected
+                    if hull_area == 0:
+                        solidity = 0
+                        failed = True
+                    else:
+                        solidity = float(area) / hull_area
+                        M = cv.moments(cntsSorted[i])
+                        cx = int(M['m10'] / M['m00'])
+                        cy = int(M['m01'] / M['m00'])
+                        xcoord = cx
+                        ycoord = cy
+                except:
+                    failed = True
+
+                if failed == False:
+                    # excluding failed calculations, usually 1 pixel measurements.
+                    perimeter = cv.arcLength(cntsSorted[i], True)
+                    equi_diameter = np.sqrt(4 * area / np.pi)
+
+                    if bboxarea > 0:
+                        extent = area / bboxarea
+                    else:
+                        extent = 0
+                    if h > 0:
+                        aspect_ratio = w / h
+                    else:
+                        aspect_ratio = 1
+
+                    bboximage = imggray[y:y + h, x:x + w]
+                    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(bboximage)
+
+                    meanintensity = cv.mean(bboximage)[0]
+                    minintensity = min_val
+                    maxintensity = max_val
+
+                    if (xcoord, ycoord) not in coords and ((xcoord - 1, ycoord)) not in coords and (
+                            (xcoord, ycoord - 1)) not in coords and ((xcoord + 1, ycoord)) not in coords and (
+                            (xcoord, ycoord + 1)) not in coords:
+                        coords.append((xcoord, ycoord))
+                        featureproperties.append(
+                            [area, equi_diameter, orientation, majoraxislength, minoraxislength, perimeter, xcoord,
+                             ycoord,
+                             solidity, bboxwidth, bboxheight, bboxarea, hull_area, minintensity, meanintensity,
+                             maxintensity, extent, aspect_ratio, 0, filename])
+                        cntsSorted_new.append(cntsSorted[i])
+
+            print("countsSorted_new: ", len(cntsSorted_new))
+            if (len(cntsSorted_new) > 0):
+                minarea = cv.contourArea(cntsSorted_new[0])
+                maxarea = cv.contourArea(cntsSorted_new[-1])
+                mularea = (len(colors) - 1) / (maxarea - minarea)
+
+                colvalidx = Analyze.FeatureProperties.propertynames.index("ColorValue")
+
+                for i in range(len(cntsSorted_new)):
+                    area = cv.contourArea(cntsSorted_new[i]) - minarea + 1
+                    colvi = int(area * mularea)
+                    coln = colors[colvi]
+                    featureproperties[i][colvalidx] = colvi
+                    img6 = cv.drawContours(img5, cntsSorted_new, i, coln, -1)
+
+                print("Number of contours detected = %d" % len(featureproperties))
+                out = cv.bitwise_and(img6, img6, mask=thresh)
+                overlay = cv.addWeighted(img5b, 0.7, out, 0.3, 0)
+            else:
+                print("Warning: No contours found.")
+                overlay = img5.copy()
+                out = img5.copy()
+            return overlay, out, featureproperties
+
+        @staticmethod
+        def _contours_with_distance_map(orig, thresh, distance_threshold=0.2):
+            # noise removal
+            kernel = np.ones((3, 3), np.uint8)
+            opening = cv.morphologyEx(thresh, cv.MORPH_OPEN, kernel, iterations=1)
+
+            # sure background area
+            sure_bg = cv.dilate(opening, kernel, iterations=1)
+
+            # Finding sure foreground area
+            dist_transform = cv.distanceTransform(opening, cv.DIST_L2, 3)
+            # ims.View.plot(dist_transform)
+
+            # the 0.2 threshold figure modifies the figure
+            ret, sure_fg = cv.threshold(dist_transform, distance_threshold * dist_transform.max(), 255, 0)
+
+            # Finding unknown feature
+            sure_fg = np.uint8(sure_fg)
+            unknown = cv.subtract(sure_bg, sure_fg)
+
+            # Marker labelling
+            ret, markers = cv.connectedComponents(sure_fg)
+            # Add one to all labels so that sure background is not 0, but 1
+            markers = markers + 1
+            # Now, mark the feature of unknown with zero
+            markers[unknown == 255] = 0
+
+            orig2 = ims.Image.Convert.toRGB(orig)
+            markers = cv.watershed(orig2, markers)
+            orig2[markers == -1] = [255, 0, 0]
+
+            contour, hierarchy = cv.findContours(image=markers.copy(), mode=cv.RETR_CCOMP,
+                                                 method=cv.CHAIN_APPROX_SIMPLE)
+            return contour, markers
+
+        @staticmethod
+        def get_featureproperties(orig, thresh, minarea=0,
+                                  maxarea=-1, applydistancemap=True, distance_threshold=0.2, filename=""):
+            """Determine the list of features with properties per patch
+
+            threshold value for the applied image mask.
+            mininum and maximum bounding box size (=width x height of a feature.
+            enable/disable a distance map for seperation of overlapping features
+            distance threshold between 0.1 and 0.9 if a distance map is used.
+
+            overlay displays an overlay of the features found on top of the original image.
+            out shows the labeled features without overlay
+            graph shows the size distribution
+
+            propertynames = ['Area',
+                        'EquivalentDiameter',
+                        'Orientation',
+                        'MajorAxisLength',
+                        'MinorAxisLength',
+                        'Perimeter',
+                        'XCoord',
+                        'YCoord',
+                        'Solidity',
+                        'BoundingBoxWidth',
+                        'BoundingBoxHeight',
+                        'BoundingBoxArea',
+                        'ConvexHullArea',
+                        'MinIntensity',
+                        'MeanIntensity',
+                        'MaxIntensity',
+                        'Extent',
+                        'AspectRatio',
+                        'ColorValue',
+                        'Filename']
+
+
+            :Parameters: original_image, threshold_image, minarea, maxarea, apply_distance_map, distance_threshold
+            :Returns: overlay, out, markers featureproperties
+            """
+
+            # img = ims.Image.Convert.toGray(orig)
+            # Find all contours on the map
+            # _th, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+
+            # cv version check
+
+            if applydistancemap == True:
+                contours, markers = Analyze.FeatureProperties._contours_with_distance_map(orig, thresh,
+                                                                                          distance_threshold)
+            else:
+                markers = ims.Image.new(8, 8)
+                (cvmajor, cvminor, _) = cv.__version__.split(".")
+                if (int(cvmajor) < 4):
+                    _th, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+                else:
+                    contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+
+            overlay, out, featureproperties = Analyze.FeatureProperties._process_contours(orig, thresh, contours,
+                                                                                          minarea, maxarea, filename)
+            return overlay, out, markers, featureproperties
+
+        def plot_feature_size_distribution(im_labeled, featureproperties, path_out, autoclose=0):
+            """Plot the feature size distribution
+                :Parameters: labeled_image, featureproperties, path_out,autoclose
+                :Returns: NA
+            """
+
+            areaidx = Analyze.FeatureProperties.propertynames.index("Area")
+            coloridx = Analyze.FeatureProperties.propertynames.index("ColorValue")
+
+            arealist = []
+            colorList = []
+            for item in featureproperties:
+                arealist.append(item[areaidx])
+
+                coln = colors[item[coloridx]]
+                # print(coln)
+                col = [coln[2] / 255., coln[1] / 255., coln[0] / 255., 1]
+                colorList.append(col)
+
+            Y = (np.array(arealist))
+            X = np.arange(1, len(arealist) + 1)
+
+            plt.figure(figsize=(8, 4))
+            plt.gcf().canvas.set_window_title('Size Distribution')
+
+            gridspec.GridSpec(1, 2)
+            plt.subplot2grid((1, 2), (0, 0), colspan=1, rowspan=1)
+            plt.imshow(im_labeled)
+
+            plt.subplot2grid((1, 2), (0, 1), colspan=1, rowspan=1)
+
+            plt.bar(X, Y, color=colorList)
+            plt.xlabel("Feature Number")
+            plt.ylabel("Area [pixels]")
+            plt.tight_layout()
+
+            plt.savefig(path_out + "size_distribution.png")
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
+
+        def get_image_with_boundingboxes(image, featureproperties, path_out):
+            """Plot the feature size distribution
+                :Parameters: image, featureproperties, path_out
+                :Returns: image_with_boundingboxes
+            """
+            widx = Analyze.FeatureProperties.propertynames.index("BoundingBoxWidth")
+            hidx = Analyze.FeatureProperties.propertynames.index("BoundingBoxHeight")
+            xidx = Analyze.FeatureProperties.propertynames.index("XCoord")
+            yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
+
+            img = image.copy()
+
+            for item in featureproperties:
+                # Draw rectangle around segmented items.
+                w = item[widx]
+                h = item[hidx]
+                x = item[xidx] - int(w / 2)
+                y = item[yidx] - int(h / 2)
+
+                img = cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 3)
+            return img
+
+        def get_image_with_centermarkers(image, featureproperties, path_out):
+            """Plot the feature size distribution
+                :Parameters: image, featureproperties, path_out
+                :Returns: image_with_labels
+            """
+            xidx = Analyze.FeatureProperties.propertynames.index("XCoord")
+            yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
+
+            img = image.copy()
+
+            for item in featureproperties:
+                x = item[xidx]
+                y = item[yidx]
+
+                img = cv.circle(img, (x, y), 1, (0, 0, 255), 3)
+            return img
+
+        def get_image_with_ellipses(image, featureproperties, path_out):
+            """Plot the feature size distribution
+                :Parameters: image, featureproperties, path_out
+                :Returns: image_with_ellipses
+            """
+            majidx = Analyze.FeatureProperties.propertynames.index("MajorAxisLength")
+            minidx = Analyze.FeatureProperties.propertynames.index("MinorAxisLength")
+            oidx = Analyze.FeatureProperties.propertynames.index("Orientation")
+            xidx = Analyze.FeatureProperties.propertynames.index("XCoord")
+            yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
+
+            img = image.copy()
+
+            for item in featureproperties:
+                # Draw rectangle around segmented items.
+                w = int(item[majidx] / 2)
+                h = int(item[minidx] / 2)
+                angle = item[oidx]
+                x = item[xidx]
+                y = item[yidx]
+                img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0, 0, 255),
+                                 thickness=2)
+            return img
+
+        def save_boundingboxes(image, featureproperties, path_out, max_features_per_page=50):
+            """Plot a patched image of features found
+                :Parameters: image, featureproperties, path_out
+                :Returns: NA
+            """
+            widx = Analyze.FeatureProperties.propertynames.index("BoundingBoxWidth")
+            hidx = Analyze.FeatureProperties.propertynames.index("BoundingBoxHeight")
+            xidx = Analyze.FeatureProperties.propertynames.index("XCoord")
+            yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
+
+            img = image.copy()
+
+            j = 0
+            for item in featureproperties:
+                # Draw rectangle around segmented items.
+                w = item[widx]
+                h = item[hidx]
+                x = item[xidx] - int(w / 2)
+                y = item[yidx] - int(h / 2)
+                bboximage = img[y:y + h, x:x + w]
+                ims.Image.save(bboximage, path_out + "patches\label_{}.png".format(j), verbose=False)
+                j = j + 1

@@ -129,6 +129,7 @@ class Misc(object):
     @staticmethod
     def multicolumnlist2textfile(filename, itemlist):
         """Save string to textfile
+        DEPRECIATED
 
         :Parameters: path, itemlist
         """
@@ -136,6 +137,21 @@ class Misc(object):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, "w") as outfile:
+            outfile.write("\n".join(str(item).lstrip('[').rstrip(']') for item in itemlist))
+
+    @staticmethod
+    def save_multicolumnlist(filename, itemlist,headerlist):
+        """Save list with array of string to each line
+        add header with properties if enabled
+
+        :Parameters: path, itemlist, header
+        """
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(filename, "w") as outfile:
+            if headerlist:
+                outfile.write(','.join(str(item) for item in headerlist)+"\n")
             outfile.write("\n".join(str(item).lstrip('[').rstrip(']') for item in itemlist))
 
 

@@ -152,7 +152,7 @@ class Image(object):
         return (lMean, lStd, aMean, aStd, bMean, bStd)
 
     @staticmethod
-    def save(img, fn):
+    def save(img, fn, verbose=True):
         """Save image (PNG,TIF)
 
         :Parameters: image, filename
@@ -161,7 +161,8 @@ class Image(object):
             if (os.path.dirname(fn)):
                 os.makedirs(os.path.dirname(fn), exist_ok=True)  # mkdir if not empty
             cv.imwrite(fn, img)
-            print("file saved. ", fn)
+            if verbose==True:
+                print("file saved. ", fn)
         except:
             print("Error: cannot save file {}".format(fn))
 
@@ -946,7 +947,7 @@ class Image(object):
             return output
         '''
 
-        def salt_and_pepper_noise(image, prob=0.01):
+        def salt_and_pepper_noise(img, prob=0.01):
             """Add salt and pepper noise to an image
 
             :Parameters:
@@ -955,11 +956,13 @@ class Image(object):
 
             :Returns: image with added noise
             """
+            out = img.copy()
+
             black, white = np.array([0, 0, 0], dtype='uint8'), np.array([255, 255, 255], dtype='uint8')
-            probs = np.random.random(image.shape[:2])
-            image[probs < (prob / 2)] = black
-            image[probs > 1 - (prob / 2)] = white
-            return image
+            probs = np.random.random(out.shape[:2])
+            out[probs < (prob / 2)] = black
+            out[probs > 1 - (prob / 2)] = white
+            return out
 
         @staticmethod
         def poisson_noise(img, prob=0.25):
@@ -1120,6 +1123,21 @@ class Image(object):
                 r2, g2, b2 = cv.split(img2)
                 img3 = cv.merge([b2, g1, r0])
                 return img3
+
+
+        @staticmethod
+        def gradient_removal(img,filtersize=513,sigmaX=32):
+            """Remove Image gradient
+            :Parameters: image, filtersize, sigmaX
+            :Returns: image
+            """
+
+            gray = Image.Convert.toGray(img)
+            gaussianImg = cv.GaussianBlur(gray, (filtersize, filtersize), sigmaX=sigmaX)
+            img = (gray - gaussianImg)
+            img = Image.Adjust.invert(img)
+
+            return img
 
     class Adjust:
         @staticmethod

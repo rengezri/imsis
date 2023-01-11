@@ -1464,23 +1464,31 @@ class Dialogs(object):
         return thresh1, min, max, blur
 
     @staticmethod
-    def adjust_mask_with_background(img, windowtext="Select Mask"):
+    def adjust_mask_with_overlay(img, windowtext="Select Mask",text="Zoom +/-/r Hide h"):
         """create an image mask by setting the intensity range and blur. Returns: image, min,max,blur
         zoom in/out with +/-, reset zoom with r
         hide/unhide mask with h
         :Parameters: image, windowtext=name of form
-        :Returns: ImageOut, Min,Max,Blur
+        :Returns: Image_Thresholded, Min,Max,Blur
         """
 
         def subfunction(img, min, max, blur, zoomfactor, hidemask):
             img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
-            thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, imout)
+            thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
             if hidemask == True:
                 thresh1 = img
+            if text:
+                thresh1 = ims.Analyze.add_text(thresh1,0,0,text,fontsize=20)
 
             return thresh1
+
+        def subfunction_final(img, min, max, blur):
+            imout = cv.GaussianBlur(img, (blur, blur), 0)
+            thresh1 = cv.inRange(imout, min, max)
+            return thresh1
+
 
         def nothing(x):
             pass
@@ -1528,7 +1536,8 @@ class Dialogs(object):
 
         cv.destroyAllWindows()
         print("MaskWithBackground: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
-        thresh1 = subfunction(img, min, max, blur, zoomfactor=1, hidemask=False)
+        #thresh1 = subfunction(img, min, max, blur, zoomfactor=1, hidemask=False)
+        thresh1 = subfunction_final(img, min, max, blur)
         return thresh1, min, max, blur
 
     @staticmethod
