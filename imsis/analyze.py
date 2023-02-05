@@ -1053,23 +1053,20 @@ class Analyze(object):
         return overlay, out, cntsSorted, sizedistout
 
     @staticmethod
-    def correct_imageshift_list(framelist):
+    def correct_imageshift_list(framelist, update_reference_image=True, high_precision=False):
         """
+        DEPRECIATED - use Imagestack.align_images
+
         Correct image shifts for a list of images in memory
         Images should be of the same size
+
+        update_reference_image True: means the last aligned image acts as a reference. False the first image acts as a reference.
+        high precision uses a nonmaximum suppression algorithm: this is more precise but a lot slower
 
         :Parameters: image list
         :Returns: image list, correctiondata list(X,Y,Score)
         """
-        framelist2 = []
-        correctiondatalist = []
-        frames = len(framelist)
-        frame0 = framelist[0]
-        for i in range(1, frames):
-            frame1 = framelist[i]
-            frame0, sx, sy, score = Analyze.ImageAlignment.NCC(frame0, frame1)
-            framelist2.append(frame0)
-            correctiondatalist.append([sx, sy, score])
+        framelist2, correctiondatalist = ims.ImageStack.align_images(framelist,update_reference_image=update_reference_image,high_precision=high_precision)
         return framelist2, correctiondatalist
 
     @staticmethod
@@ -1280,6 +1277,8 @@ class Analyze(object):
             colors, count = np.unique(img.reshape(-1, 1), axis=0, return_counts=True)
             out = (colors[count.argmax()]).tolist()
         return out
+
+
 
     class SharpnessDetection:
         # Ref: http: // radjkarl.github.io / imgProcessor / _modules / imgProcessor / measure / sharpness / parameters.html

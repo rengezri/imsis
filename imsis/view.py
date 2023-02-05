@@ -31,7 +31,12 @@ class View(object):
             print('Error, image shape mismatch found in plot.')
 
         plt.figure(figsize=(8, 8))
-        plt.gcf().canvas.set_window_title(window_title)
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+            print("ERROR: Matplotlib versioning errors..")
+
         plt.title(title)
 
         img = ims.Image.Convert.BGRtoRGB(img)
@@ -76,7 +81,12 @@ class View(object):
         cols = int(ln / rows + 0.5)
 
         plt.figure(figsize=(cols * 4, rows * 4))
-        plt.gcf().canvas.set_window_title(window_title)
+
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+            print("ERROR: Matplotlib versioning errors..")
 
         # print(rows,cols)
         i = 0

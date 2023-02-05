@@ -161,7 +161,7 @@ class Image(object):
             if (os.path.dirname(fn)):
                 os.makedirs(os.path.dirname(fn), exist_ok=True)  # mkdir if not empty
             cv.imwrite(fn, img)
-            if verbose==True:
+            if verbose == True:
                 print("file saved. ", fn)
         except:
             print("Error: cannot save file {}".format(fn))
@@ -315,54 +315,7 @@ class Image(object):
         print(out)
         return out
 
-    @staticmethod
-    def video_to_imagesondisk(file_in='video.avi', path_out='images'):
-        """video to image
 
-        :Parameters: video_filename
-        :Returns: images
-        """
-        video_file = file_in
-        output_folder = path_out
-        vidcap = cv.VideoCapture(video_file)
-        success, image = vidcap.read()
-        count = 0
-        success = True
-        while success:
-            fn = output_folder + "/" + "frame%d.png" % count
-            cv.imwrite(fn, image)  # save frame as JPEG file
-            success, image = vidcap.read()
-            print('Read a new frame: ', success, fn)
-            count += 1
-        print("ready.")
-
-    @staticmethod
-    def imagesfromdisk_to_video(path_in, file_out='video.avi', framerate=15):
-        """images from file to video
-
-        :Parameters: path with list of frames
-        :Returns: video
-        """
-        image_folder = path_in
-        video_name = file_out
-
-        output_folder = "output"
-
-        fn = image_folder + "/" + output_folder + "/"
-        print(fn)
-        os.makedirs(os.path.dirname(fn), exist_ok=True)
-
-        images = [img for img in os.listdir(image_folder) if (img.endswith(".tif") or img.endswith(".png"))]
-        frame = cv.imread(os.path.join(image_folder, images[0]))
-        height, width, layers = frame.shape
-
-        video = cv.VideoWriter(fn + video_name, 0, framerate, (width, height))
-
-        for image in images:
-            video.write(cv.imread(os.path.join(image_folder, image)))
-
-        cv.destroyAllWindows()
-        video.release()
 
     '''
     @staticmethod
@@ -497,6 +450,7 @@ class Image(object):
 
             gradSup = nonmaxsuppression(im, grad)
             return gradSup, thetaQ
+
 
         @staticmethod
         def nonlocalmeans(img, h=10, templatewindowsize=7, searchwindowsize=21):
@@ -1124,9 +1078,31 @@ class Image(object):
                 img3 = cv.merge([b2, g1, r0])
                 return img3
 
+            @staticmethod
+            def grayscale_to_color(img, color):
+                """ colorize a grayscale image by a given color
+                :Parameters: image, color
+                :Returns: image
+                """
+
+                # Add a small value to grayscale image
+                gray_img = img.copy()
+                #gray_img += 1
+
+                # Normalize grayscale image to the range [0, 255]
+                #gray_img = cv.normalize(gray_img, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+
+                # Create color image
+                color_img = np.zeros((gray_img.shape[0], gray_img.shape[1], 3), dtype=np.uint8)
+                color_img[:, :, 0] = color[0]
+                color_img[:, :, 1] = color[1]
+                color_img[:, :, 2] = color[2]
+                color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8) / 255
+
+                return color_img
 
         @staticmethod
-        def gradient_removal(img,filtersize=513,sigmaX=32):
+        def gradient_removal(img, filtersize=513, sigmaX=32):
             """Remove Image gradient
             :Parameters: image, filtersize, sigmaX
             :Returns: image
@@ -1138,6 +1114,110 @@ class Image(object):
             img = Image.Adjust.invert(img)
 
             return img
+
+        @staticmethod
+        def replace_black_pixels_by_median(img):
+            """Replace black pixels by the median of neighbours
+
+            :Parameters: image
+            :Returns: image
+            """
+
+            # Make mask of black pixels, True where black
+            # Define a threshold to consider a pixel as black
+            black_threshold = 20
+
+            # Create a binary mask of black pixels, where True means black
+            blackMask = np.all(img < black_threshold, axis=-1)
+
+            #blackMask = np.all(img == 0, axis=-1)
+            median = cv.medianBlur(img, 3)
+            res = np.where(blackMask[..., None], median, img)
+            return res
+
+        '''
+        def replace_black_pixels_by_inpainting(img, inpaintRadius=3):
+            """Replace black pixels by inpainting
+
+            :Parameters: image
+            :Returns: image
+            """
+            # Make mask of black pixels, True where black
+            blackMask = np.all(img == 0, axis=-1)
+            # Inpaint the black pixels
+            inpainted = cv.inpaint(img, blackMask.astype(np.uint8), inpaintRadius, cv.INPAINT_TELEA)
+            res = np.where(blackMask[..., None], inpainted, img)
+            return res
+        '''
+
+        def replace_black_pixels_using_nonlocalmeans(img):
+            """Replace black pixels by nonlocalmeans filtering
+
+            :Parameters: image
+            :Returns: image
+            """
+            # Define a threshold to consider a pixel as black
+            black_threshold = 20
+
+            # Create a binary mask of black pixels, where True means black
+            black_mask = np.all(img < black_threshold, axis=-1)
+
+            # Create a copy of the image to modify only black pixels
+            img_copy = img.copy()
+
+            # Apply Gaussian blur to black pixels
+            blurred = cv.GaussianBlur(img_copy, (5, 5), 0)
+            blurred[~black_mask] = img[~black_mask]
+
+            # Apply non-local means denoising to black pixels
+            denoised = cv.fastNlMeansDenoisingColored(blurred, None, 10, 10, 7, 21)
+            denoised[~black_mask] = img[~black_mask]
+
+            # Apply morphological operations to black pixels
+            kernel = np.ones((3, 3), np.uint8)
+            cleaned = cv.morphologyEx(denoised, cv.MORPH_CLOSE, kernel)
+            cleaned[~black_mask] = img[~black_mask]
+            return cleaned
+
+        @staticmethod
+        def noise_reduction_thresholded(img):
+            """Replace black pixels by the median of neighbours
+
+            :Parameters: image
+            :Returns: image
+            """
+
+
+            threshold = 1
+            _, thresh = cv.threshold(cv.cvtColor(img, cv.COLOR_BGR2GRAY), threshold, 255, cv.THRESH_BINARY)
+
+            # Find the contours of the noisy regions
+            contours, _ = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+            # Draw a black mask on the noisy regions
+            mask = np.zeros_like(img)
+            cv.drawContours(mask, contours, -1, (0, 0, 0), -1)
+
+            # Remove the noisy regions by applying the mask on the image
+            result = cv.bitwise_and(img, mask)
+
+            return result
+
+        @staticmethod
+        def remove_islands_colour(img, kernel=13):
+            """Remove islands in a colour image using a kernel
+
+            :Parameters: image, kernel=13
+            :Returns: image
+            """
+            # Convert the image to grayscale
+            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+            blur = cv.GaussianBlur(gray, (kernel, kernel), 0)
+            thresh = cv.threshold(blur, 100, 255, cv.THRESH_BINARY)[1]
+            # Remove the noisy regions by applying the mask on the image
+            result = cv.bitwise_and(img, img, mask=thresh)
+            return result
 
     class Adjust:
         @staticmethod
@@ -1654,8 +1734,6 @@ class Image(object):
             return image
         '''
 
-
-
         @staticmethod
         def morphology_erode(img, kernel=5):
             """Morphology filter - erode
@@ -1745,6 +1823,8 @@ class Image(object):
             del_isolated = cv.bitwise_and(input_image, input_image, mask=hitormiss_comp)
             return del_isolated
 
+
+
         @staticmethod
         def remove_islands(img0, min_size=150):
             """Remove islands in an image
@@ -1752,6 +1832,7 @@ class Image(object):
             :Parameters: image, min_size=150
             :Returns: image
             """
+
             # find all your connected components (white blobs in your image)
             nb_components, output, stats, centroids = cv.connectedComponentsWithStats(img0, connectivity=8)
             # connectedComponentswithStats yields every seperated component with information on each of them, such as size
@@ -2574,3 +2655,52 @@ class Image(object):
             # dist2 = new_img
 
             return dist2
+
+        @staticmethod
+        def video_to_imagesondisk(file_in='video.avi', path_out='images'):
+            """video to image
+
+            :Parameters: video_filename
+            :Returns: images
+            """
+            video_file = file_in
+            output_folder = path_out
+            vidcap = cv.VideoCapture(video_file)
+            success, image = vidcap.read()
+            count = 0
+            success = True
+            while success:
+                fn = output_folder + "/" + "frame%d.png" % count
+                cv.imwrite(fn, image)  # save frame as JPEG file
+                success, image = vidcap.read()
+                print('Read a new frame: ', success, fn)
+                count += 1
+            print("ready.")
+
+        @staticmethod
+        def imagesfromdisk_to_video(path_in, file_out='video.avi', framerate=15):
+            """images from file to video
+
+            :Parameters: path with list of frames
+            :Returns: video
+            """
+            image_folder = path_in
+            video_name = file_out
+
+            output_folder = "output"
+
+            fn = image_folder + "/" + output_folder + "/"
+            print(fn)
+            os.makedirs(os.path.dirname(fn), exist_ok=True)
+
+            images = [img for img in os.listdir(image_folder) if (img.endswith(".tif") or img.endswith(".png"))]
+            frame = cv.imread(os.path.join(image_folder, images[0]))
+            height, width, layers = frame.shape
+
+            video = cv.VideoWriter(fn + video_name, 0, framerate, (width, height))
+
+            for image in images:
+                video.write(cv.imread(os.path.join(image_folder, image)))
+
+            cv.destroyAllWindows()
+            video.release()

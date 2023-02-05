@@ -90,7 +90,7 @@ class Misc(object):
 
         fn_list = []
         for file in sorted(os.listdir(path_in0)):
-            if file.endswith((".png", ".tif", ".tiff",".jpg",".bmp")):
+            if file.endswith(('.tiff', '.png', '.tif', '.bmp', '.jpg', '.TIFF', '.PNG', '.TIF', '.BMP', '.JPG')):
                 fn_list.append(os.path.join(path_in0, file))
         return fn_list
 
@@ -153,6 +153,26 @@ class Misc(object):
             if headerlist:
                 outfile.write(','.join(str(item) for item in headerlist)+"\n")
             outfile.write("\n".join(str(item).lstrip('[').rstrip(']') for item in itemlist))
+
+    @staticmethod
+    def load_multicolumnlist(filename):
+        """load list with array of string to each line
+        header will be ignored (mainly for reading in notepad/excel etc.)
+
+        :Parameters: filename
+        :Returns: list
+        """
+
+        data = []
+        with open(filename) as f:
+            first_row = True
+            for line in f:
+                if first_row:
+                    first_row = False
+                    continue
+                columns = line.strip().split(",")
+                data.append([float(val) for val in columns])
+        return data
 
 
 
