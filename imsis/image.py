@@ -289,9 +289,7 @@ class Image(object):
 
         :Parameters: img
         """
-        print(img.shape)
-        print(img.size)
-        print(img.dtype)
+        print("{}, {}, {}".format(img.shape, img.size, img.dtype))
 
     @staticmethod
     def unique_colours(image):
@@ -314,8 +312,6 @@ class Image(object):
             out = len(np.unique(out_in_32U_1D))
         print(out)
         return out
-
-
 
     '''
     @staticmethod
@@ -450,7 +446,6 @@ class Image(object):
 
             gradSup = nonmaxsuppression(im, grad)
             return gradSup, thetaQ
-
 
         @staticmethod
         def nonlocalmeans(img, h=10, templatewindowsize=7, searchwindowsize=21):
@@ -1087,17 +1082,17 @@ class Image(object):
 
                 # Add a small value to grayscale image
                 gray_img = img.copy()
-                #gray_img += 1
+                # gray_img += 1
 
                 # Normalize grayscale image to the range [0, 255]
-                #gray_img = cv.normalize(gray_img, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+                # gray_img = cv.normalize(gray_img, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
 
                 # Create color image
                 color_img = np.zeros((gray_img.shape[0], gray_img.shape[1], 3), dtype=np.uint8)
                 color_img[:, :, 0] = color[0]
                 color_img[:, :, 1] = color[1]
                 color_img[:, :, 2] = color[2]
-                color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8) / 255
+                color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8)
 
                 return color_img
 
@@ -1130,25 +1125,10 @@ class Image(object):
             # Create a binary mask of black pixels, where True means black
             blackMask = np.all(img < black_threshold, axis=-1)
 
-            #blackMask = np.all(img == 0, axis=-1)
+            # blackMask = np.all(img == 0, axis=-1)
             median = cv.medianBlur(img, 3)
             res = np.where(blackMask[..., None], median, img)
             return res
-
-        '''
-        def replace_black_pixels_by_inpainting(img, inpaintRadius=3):
-            """Replace black pixels by inpainting
-
-            :Parameters: image
-            :Returns: image
-            """
-            # Make mask of black pixels, True where black
-            blackMask = np.all(img == 0, axis=-1)
-            # Inpaint the black pixels
-            inpainted = cv.inpaint(img, blackMask.astype(np.uint8), inpaintRadius, cv.INPAINT_TELEA)
-            res = np.where(blackMask[..., None], inpainted, img)
-            return res
-        '''
 
         def replace_black_pixels_using_nonlocalmeans(img):
             """Replace black pixels by nonlocalmeans filtering
@@ -1179,6 +1159,7 @@ class Image(object):
             cleaned[~black_mask] = img[~black_mask]
             return cleaned
 
+        '''
         @staticmethod
         def noise_reduction_thresholded(img):
             """Replace black pixels by the median of neighbours
@@ -1186,7 +1167,6 @@ class Image(object):
             :Parameters: image
             :Returns: image
             """
-
 
             threshold = 1
             _, thresh = cv.threshold(cv.cvtColor(img, cv.COLOR_BGR2GRAY), threshold, 255, cv.THRESH_BINARY)
@@ -1202,6 +1182,7 @@ class Image(object):
             result = cv.bitwise_and(img, mask)
 
             return result
+        '''
 
         @staticmethod
         def remove_islands_colour(img, kernel=13):
@@ -1211,7 +1192,7 @@ class Image(object):
             :Returns: image
             """
             # Convert the image to grayscale
-            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            gray = Image.Convert.toGray(img)
 
             blur = cv.GaussianBlur(gray, (kernel, kernel), 0)
             thresh = cv.threshold(blur, 100, 255, cv.THRESH_BINARY)[1]
@@ -1822,8 +1803,6 @@ class Image(object):
             hitormiss_comp = cv.bitwise_not(hitormiss)  # could just use 255-img
             del_isolated = cv.bitwise_and(input_image, input_image, mask=hitormiss_comp)
             return del_isolated
-
-
 
         @staticmethod
         def remove_islands(img0, min_size=150):
@@ -2704,3 +2683,85 @@ class Image(object):
 
             cv.destroyAllWindows()
             video.release()
+
+        @staticmethod
+        def _get_dominant_color(img):
+            """ Return dominant color in an image
+            :Parameters: image
+            :Returns: color
+            """
+            if len(img.shape) == 3:
+                colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
+                out = (colors[count.argmax()]).tolist()
+            else:
+                colors, count = np.unique(img.reshape(-1, 1), axis=0, return_counts=True)
+                out = (colors[count.argmax()]).tolist()
+            return out
+
+        @staticmethod
+        def intensity_compensation_per_line(img):
+            """intensity compensation per line
+
+            :Parameters: image
+            :Returns: image
+            """
+
+            '''
+            def histogram(img, range=None, step=0.1, order=None, smoothed=False, smoothing_order=1, mask=None):
+                round_min = lambda x, step: round(x - x % step, 3)
+                round_max = lambda x, step: round(x - x % step + step, 3)
+
+                if not mask is None:
+                    unmasked = np.where(mask != 0.0)
+                    unmasked = list(zip(*unmasked))
+                    data = img
+                    data = np.array([data[y, x] for y, x in unmasked])
+                else:
+                    # data = img.data.flatten()
+                    data = img.flatten()
+
+                if range is None:
+                    range = [round_min(data.min(), step), round_max(data.max(), step)]
+                elif len(range) == 2:
+                    range = [round_min(range[0], step), round_max(range[1], step)]
+                else:
+                    raise ValueError
+                bins = int((range[1] - range[0]) / step)
+                hist, hist_bins = np.histogram(data, bins=bins, range=range)
+                if smoothed:
+                    kernel = cv2.getGaussianKernel(smoothing_order, 0)[:, 0]
+                    hist = np.convolve(hist, kernel, mode='same')
+                if order is None:
+                    order = int(round(1 / step))
+                peaks = signal.argrelmax(hist, order=order)[0]
+
+                return hist, hist_bins[:-1], peaks
+
+            def heightcorrection0(src, makeItZero=False, peak_num=21, step=0.1):
+                dst = src.copy()
+                hist, bins, peak_idx = histogram(dst, step=step)
+                peak = bins[peak_idx[peak_num - 1]]
+                dst = dst - peak
+                if makeItZero:
+                    black = np.zeros_like(dst, dtype='uint8')
+                    dst = np.where(dst >= 0.0, dst, black)
+                return dst
+            '''
+
+            col = Image.Tools._get_dominant_color(img)
+            img2 = Image.Convert.toGray(img)
+            img2 = cv.normalize(img2, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+
+            # calculate the mean intensity of each line
+            mean_intensities = np.mean(img2, axis=1)
+            # subtract the mean intensity from each line
+            res = img2 - mean_intensities[:, np.newaxis]
+            res = cv.normalize(res, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+
+            # Apply binary threshold to detect bright pixels
+            _, thresh = cv.threshold(img2, 0, 128, cv.THRESH_BINARY)
+            # Invert binary image
+            # Multiply binary image with grayscale image to remove bright pixels
+            res = cv.bitwise_and(res, thresh)
+            res = Image.Process.Falsecolor.grayscale_to_color(res, col)
+            return res

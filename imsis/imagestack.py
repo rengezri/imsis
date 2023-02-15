@@ -18,6 +18,7 @@ import scipy.misc
 from matplotlib import pyplot as plt
 import numpy.random as random
 import imsis as ims
+import numpy.random as random
 
 
 class ImageStack:
@@ -305,6 +306,37 @@ class ImageStack:
             imageout = imagen[y: y + h, x: x + w]
             s.append(imageout)
         return s
+
+
+    @staticmethod
+    def create_dummy_imagestack(image0, slices=10, add_noise=0.2, add_translations=0.2, add_rotations=360):
+        """
+        create dummy slices for an image stack with noise or translations
+        noise sigma 0-1, 0=no noise
+        translations 0-1, 0= no translation, 1 is full image max
+        rotations 0-360, 0 = no rotations
+
+        :Parameters: image, slices, add_noise,add_translations
+        :Returns: frames
+        """
+        w = image0.shape[1]
+        h = image0.shape[0]
+        s=[]
+        for i in range(0, slices):
+            image1 = image0.copy()
+            if add_noise>0:
+                image1=ims.Image.Process.poisson_noise(image1,prob=add_noise)
+            if add_translations>0:
+                shiftx = int(-w*add_translations/2 + random.randint(0, int(w*add_translations)))
+                shifty = int(-h*add_translations/2 + random.randint(0, int(h*add_translations)))
+                image1=ims.Image.Transform.translate(image1,shiftx,shifty)
+            if add_rotations>0:
+                alpha = random.randint(0, add_rotations)
+                image1=ims.Image.Transform.rotate(image1,alpha)
+
+            s.append(image1)
+        return s
+
 
     @staticmethod
     def align_images(framelist, update_reference_image=True, high_precision=False):

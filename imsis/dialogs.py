@@ -97,7 +97,7 @@ class Window(QtWidgets.QWidget):
 
             for key, val in dct.items():
                 dct[key] = False
-                if key ==actkey:
+                if key == actkey:
                     dct[key] = True
 
             properties[row][1] = str(dct)
@@ -197,7 +197,7 @@ class Window(QtWidgets.QWidget):
                     table.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
             i = i + 1
 
-        #print(highlighted_index)
+        # print(highlighted_index)
 
         # Add Header
         table.setHorizontalHeaderLabels(horHeaders)
@@ -207,13 +207,13 @@ class Window(QtWidgets.QWidget):
         table.resizeRowsToContents()
         w0 = table.columnWidth(0)
         w1 = table.columnWidth(1)
-        w0=int(w0*1.1)
-        w1=int(w1*1.2)
-        #print(w0,w1)
-        if w0>400:
-            w0=400
-        if w1>400:
-            w1=400
+        w0 = int(w0 * 1.1)
+        w1 = int(w1 * 1.2)
+        # print(w0,w1)
+        if w0 > 400:
+            w0 = 400
+        if w1 > 400:
+            w1 = 400
         table.setColumnWidth(0, w0)
         table.setColumnWidth(1, w1)
 
@@ -231,14 +231,13 @@ class Window(QtWidgets.QWidget):
         if len(info) != 0:
             grid.addWidget(Qinfo)
         grid.addWidget(okButton)
-        #self.setGeometry(200, 200, 600, newheight)
+        # self.setGeometry(200, 200, 600, newheight)
 
-        #table.setSizeAdjustPolicy(
+        # table.setSizeAdjustPolicy(
         #    QtWidgets.QAbstractScrollArea.AdjustToContents)
 
         table.setSizeAdjustPolicy(
             QtWidgets.QAbstractScrollArea.AdjustToContentsOnFirstShow)
-
 
         self.show()
         self.raise_()
@@ -470,7 +469,7 @@ class ComboBoxWidget(QtWidgets.QDialog):
         vbox = QtWidgets.QVBoxLayout(self)
 
         i = 0
-        highlighted_index=0
+        highlighted_index = 0
         # check state of all buttons, prevent that all buttons are disabled, if multiple buttons are selected last one is enabled.
         anybuttonselected = False
         for string, datatype in datalist:
@@ -481,18 +480,18 @@ class ComboBoxWidget(QtWidgets.QDialog):
         if anybuttonselected == False:
             datalist[0][1] = True
 
-        i=0
+        i = 0
         for string, datatype in datalist:
             self.button_group.addItem(string)
             # self.button_group.setId(self.button_name, i)
             # self.button_name.setChecked(datatype)
-            #vbox.addWidget(self.button_group)
+            # vbox.addWidget(self.button_group)
 
             i = i + 1
         vbox.addWidget(self.button_group)
 
-        #highlighted_index=2
-        #print('index', highlighted_index)
+        # highlighted_index=2
+        # print('index', highlighted_index)
         self.button_group.setCurrentIndex(highlighted_index)
 
         Qinfo = QtWidgets.QLabel(info)
@@ -604,7 +603,7 @@ class Dialogs(object):
         :Returns: result
         """
 
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -633,7 +632,7 @@ class Dialogs(object):
             print(ret)
 
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -680,15 +679,13 @@ class Dialogs(object):
         :Parameters: dictionary
         :Returns: key
         """
-        index=0
+        index = 0
         valfinal = 0
         for key, value in dct.items():
             if value == True:
                 valfinal = index
-            index=index+1
+            index = index + 1
         return valfinal
-
-
 
     @staticmethod
     def dialog_comboboxlist(properties, windowtext="Checklist", info="", alwaysontop=True):
@@ -707,7 +704,7 @@ class Dialogs(object):
             print(ret)
 
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -752,7 +749,7 @@ class Dialogs(object):
             print(ret)
 
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -796,7 +793,7 @@ class Dialogs(object):
 
         """
 
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -828,7 +825,7 @@ class Dialogs(object):
         """
         entry_type = type(input)
 
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -871,7 +868,7 @@ class Dialogs(object):
 
         :Parameters: text
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -887,7 +884,7 @@ class Dialogs(object):
         This is a multi-line textbox
         :Parameters: text
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -907,7 +904,7 @@ class Dialogs(object):
         This is a multi-line textbox, input is a HTML string
         :Parameters: text
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -927,7 +924,7 @@ class Dialogs(object):
 
         :Parameters: text
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -952,7 +949,7 @@ class Dialogs(object):
             print(propertiesafter)
 
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -963,7 +960,7 @@ class Dialogs(object):
         data = []
         datatypes = []
 
-        #avoid triggering errors due to empty strings
+        # avoid triggering errors due to empty strings
         for k, v in properties.items():
             if v == "":
                 properties.update({k: " "})
@@ -1005,7 +1002,7 @@ class Dialogs(object):
                     else:
                         if (datatypes[row] is dict):
                             properties[twi0] = eval(twi1)
-                            print('eval:' , eval(twi1))
+                            print('eval:', eval(twi1))
                         else:
                             properties[twi0] = twi1  # not float or int therefore making it string
 
@@ -1015,14 +1012,15 @@ class Dialogs(object):
         return properties
 
     @staticmethod
-    def openfile_dialog(path='/', windowtext='Open File Dialog',filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True):
+    def openfile_dialog(path='/', windowtext='Open File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)",
+                        alwaysontop=True):
         """
         Open file dialog
 
         :Parameters: path, text, filter, alwaysontop
         :Returns: path
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -1030,18 +1028,19 @@ class Dialogs(object):
         if alwaysontop == True:
             window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        filename, _filter = QtWidgets.QFileDialog.getOpenFileName(window, windowtext, path,filter)
+        filename, _filter = QtWidgets.QFileDialog.getOpenFileName(window, windowtext, path, filter)
         return filename
 
     @staticmethod
-    def savefile_dialog(path='/', windowtext='Save File Dialog',filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)", alwaysontop=True):
+    def savefile_dialog(path='/', windowtext='Save File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)",
+                        alwaysontop=True):
         """
         Save file dialog
 
         :Parameters: path, text, filter, alwaysontop
         :Returns: path
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -1052,7 +1051,6 @@ class Dialogs(object):
         filename, _filter = QtWidgets.QFileDialog.getSaveFileName(window, windowtext, path, filter)
         return filename
 
-
     @staticmethod
     def openfolder_dialog(path='/', windowtext='Open File Dialog', alwaysontop=True):
         """
@@ -1061,7 +1059,7 @@ class Dialogs(object):
         :Parameters: path, text
         :Returns: path
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
@@ -1464,7 +1462,7 @@ class Dialogs(object):
         return thresh1, min, max, blur
 
     @staticmethod
-    def adjust_mask_with_overlay(img, windowtext="Select Mask",text="Zoom +/-/r Hide h"):
+    def adjust_mask_with_overlay(img, windowtext="Select Mask", text="Zoom +/-/r Hide h"):
         """create an image mask by setting the intensity range and blur. Returns: image, min,max,blur
         zoom in/out with +/-, reset zoom with r
         hide/unhide mask with h
@@ -1480,7 +1478,7 @@ class Dialogs(object):
             if hidemask == True:
                 thresh1 = img
             if text:
-                thresh1 = ims.Analyze.add_text(thresh1,0,0,text,fontsize=20)
+                thresh1 = ims.Analyze.add_text(thresh1, 0, 0, text, fontsize=20)
 
             return thresh1
 
@@ -1488,7 +1486,6 @@ class Dialogs(object):
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh1 = cv.inRange(imout, min, max)
             return thresh1
-
 
         def nothing(x):
             pass
@@ -1508,13 +1505,23 @@ class Dialogs(object):
         zoomfactor = 1
         hidemask = False
 
+        minlast=0
+        maxlast=0
+        blurlast=0
+
         while (1):
             min = cv.getTrackbarPos("Min", windowtext)
             max = cv.getTrackbarPos("Max", windowtext)
             blur = cv.getTrackbarPos("Blur", windowtext)
             if (blur % 2 == 0):
                 blur = blur + 1
-            thresh1 = subfunction(frame, min, max, blur, zoomfactor, hidemask)
+
+            if (min != minlast) or (max != maxlast) or (blur != blurlast):
+                minlast=min
+                maxlast=max
+                blurlast=blur
+                thresh1 = subfunction(frame, min, max, blur, zoomfactor, hidemask)
+
 
             cv.imshow(windowtext, thresh1)
             k = cv.waitKey(1) & 0xFF
@@ -1536,9 +1543,117 @@ class Dialogs(object):
 
         cv.destroyAllWindows()
         print("MaskWithBackground: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
-        #thresh1 = subfunction(img, min, max, blur, zoomfactor=1, hidemask=False)
+        # thresh1 = subfunction(img, min, max, blur, zoomfactor=1, hidemask=False)
         thresh1 = subfunction_final(img, min, max, blur)
         return thresh1, min, max, blur
+
+    @staticmethod
+    def adjust_contours_after_masking(img, min, max, blur, windowtext="Select Mask", text="Zoom +/-/r Hide h"):
+        """Adjust the settings for contours after masking
+        zoom in/out with +/-, reset zoom with r
+        hide/unhide mask with h
+        :Parameters: image, windowtext=name of form
+        :Returns: Image_Thresholded, Min,Max,Blur
+        """
+
+        def subfunction(img, min,max,blur, minArea, maxArea, dt, zoomfactor, hidemask):
+            if minArea >= maxArea:
+                minArea = maxArea - 1  # avoid division by 0
+            #img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
+            imout = cv.GaussianBlur(img, (blur, blur), 0)
+            thresh0 = cv.inRange(imout, min, max)
+            #thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
+            fn = 'overlay.png'
+            print(min,max,blur,minArea,maxArea,dt)
+            try:
+                overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
+                                                                                                            thresh0,
+                                                                                                            minarea=minArea,
+                                                                                                            maxarea=maxArea,
+                                                                                                            applydistancemap=True,
+                                                                                                            distance_threshold=dt / 100)
+                overlay2 = ims.Analyze.FeatureProperties.get_image_with_ellipses(overlay, featurelist)
+            except:
+                print("Error")
+                overlay2 = img.copy()
+
+            return overlay2
+
+        def subfunction_final(img, min, max, blur,minArea,maxArea,dt):
+            print("final ",min,max,blur,minArea,maxArea,dt)
+            imout = cv.GaussianBlur(img, (blur, blur), 0)
+            thresh0 = cv.inRange(imout, min, max)
+            overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
+                                                                                                        thresh0,
+                                                                                                        minarea=minArea,
+                                                                                                        maxarea=maxArea,
+                                                                                                        applydistancemap=True,
+                                                                                                        distance_threshold=dt / 100)
+            return overlay
+
+        def nothing(x):
+            pass
+
+        def resizeimg(img):
+            fx = 1024 / img.shape[1]
+            if fx < 1:
+                frame = cv.resize(img, None, fx=fx, fy=fx)
+            else:
+                frame = img.copy()
+            return frame
+
+        frame = img.copy()
+        orig = img.copy()
+        maxarealimit = int(img.shape[0]*img.shape[1]*0.1)
+
+        cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
+
+        cv.createTrackbar("MinArea", windowtext, 200, maxarealimit, nothing)
+        cv.createTrackbar("MaxArea", windowtext, 1500, maxarealimit, nothing)
+        cv.createTrackbar("DistanceThreshold", windowtext, 1, 100, nothing)
+
+        zoomfactor = 1
+        hidemask = False
+
+        minArealast=0
+        maxArealast=0
+        dtlast=0
+
+        while (1):
+            minArea = cv.getTrackbarPos("MinArea", windowtext)
+            maxArea = cv.getTrackbarPos("MaxArea", windowtext)
+            dt = cv.getTrackbarPos("DistanceThreshold", windowtext)
+
+            if (dt != dtlast) or (minArea != minArealast) or (maxArea != maxArealast):
+                thresh1 = subfunction(frame,min,max,blur, minArea, maxArea, dt, zoomfactor, hidemask)
+                minArealast = minArea
+                maxArealast = maxArea
+                dtlast = dt
+
+
+            cv.imshow(windowtext, resizeimg(thresh1))
+            k = cv.waitKey(1) & 0xFF
+            if k == 27:
+                break
+            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                break
+            if k == 43:
+                zoomfactor = zoomfactor * 1.25
+            if k == 45:
+                zoomfactor = zoomfactor * 0.75
+            if k == 114:
+                zoomfactor = 1
+            if k == 104:
+                if hidemask == True:
+                    hidemask = False
+                else:
+                    hidemask = True
+
+        cv.destroyAllWindows()
+        print("MaskWithBackground: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
+        print("final ", min, max, blur, minArea, maxArea, dt,minArealast,maxArealast,dtlast)
+        overlay = subfunction_final(orig, min,max,blur,minArea, maxArea, dt)
+        return overlay, minArea, maxArea, dt / 100
 
     @staticmethod
     def select_edges(img, windowtext="Select Edges"):
@@ -2095,7 +2210,7 @@ class Dialogs(object):
 
         :Returns: list of urls
         """
-        #workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)

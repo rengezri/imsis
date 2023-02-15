@@ -2129,6 +2129,7 @@ class Analyze(object):
 
             img5 = ims.Image.Convert.toRGB(orig)
             img5b = img5.copy()
+            img5c = np.zeros([img5.shape[0], img5.shape[1], 3], dtype=np.uint8)
 
             if maxarea == -1:
                 maxarea = orig.shape[0] * orig.shape[1]
@@ -2217,9 +2218,10 @@ class Analyze(object):
                     colvi = int(area * mularea)
                     coln = colors[colvi]
                     featureproperties[i][colvalidx] = colvi
-                    img6 = cv.drawContours(img5, cntsSorted_new, i, coln, -1)
+                    img6 = cv.drawContours(img5c, cntsSorted_new, i, coln, -1)
 
                 print("Number of contours detected = %d" % len(featureproperties))
+
                 out = cv.bitwise_and(img6, img6, mask=thresh)
                 overlay = cv.addWeighted(img5b, 0.7, out, 0.3, 0)
             else:
@@ -2411,7 +2413,7 @@ class Analyze(object):
                 img = cv.circle(img, (x, y), 1, (0, 0, 255), 3)
             return img
 
-        def get_image_with_ellipses(image, featureproperties, path_out):
+        def get_image_with_ellipses(image, featureproperties):
             """Plot the feature size distribution
                 :Parameters: image, featureproperties, path_out
                 :Returns: image_with_ellipses
