@@ -50,7 +50,7 @@ img1 = ims.Image.Convert.toGray(img1)
 
 out, min, max, blur = ims.Dialogs.adjust_mask(img0)
 ims.View.plot(out)
-out, min, max, blur = ims.Dialogs.adjust_mask_with_background(img0)
+out, min, max, blur = ims.Dialogs.adjust_mask_with_overlay(img0)
 ims.View.plot(out)
 out, min, blur = ims.Dialogs.select_edges(img0)
 ims.View.plot(out)

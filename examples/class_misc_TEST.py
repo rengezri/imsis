@@ -24,8 +24,9 @@ print(ims.Misc.make_filelist(r".\images"))
 
 print(ims.Misc.replacedots("Hello.World! ..."))
 
-ims.Misc.list2textfile(r".\output\list.csv",[1,2,3])
-
+itemlist = [[1,2,3],[9,5,7]]
+ims.Misc.save_multicolumnlist(r".\output\multicolumn.csv",itemlist,["a","b","c"])
+ims.Misc.load_multicolumnlist(r".\output\multicolumn.csv")
 
 
 

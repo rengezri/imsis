@@ -44,10 +44,9 @@ class ImageStack:
         video.release()
 
     @staticmethod
-    def play(image_list, framerate=15, verbose=True):
+    def play(image_list, framerate=15, verbose=True, window_name="Imagestack"):
         """view image list (in memory)
         """
-        window_name = 'Imagestack'
         wk = int(1000 / framerate)
         if wk < 1:
             wk = 1
@@ -65,7 +64,7 @@ class ImageStack:
             if k == 27:  # Esc key to stop
                 break
 
-        # cv.destroyAllWindows()
+        cv.destroyWindow(window_name)
 
     @staticmethod
     def integrate_images(framelist):
