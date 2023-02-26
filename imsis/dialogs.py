@@ -1232,22 +1232,16 @@ class Dialogs(object):
         print("points: {0}".format(pntslist))
         return pntslist
 
+    '''
     @staticmethod
-    def select_lines(img, windowtext="Select Lines"):
+    def select_lines_OLD(img, windowtext="Select Lines"):
         """Draw multiple lines in an image and return (x0,y0,x1,y1) for each rectangle
 
         :Parameters: windowtext=name of form
         :Returns: list of shapes [shapenumber][(x0,y0),(x1,y1)]
         :rtype: object
         """
-        '''
-        fx = 1024 / img.shape[1]
-        if fx < 1:
-            frame = cv.resize(img, None, fx=fx, fy=fx)
-            img0 = frame.copy()  # avoid drawing inside the copy
-        else:
-            img0 = img.copy()
-        '''
+
 
         img0 = img.copy()
         fx = 1
@@ -1309,6 +1303,93 @@ class Dialogs(object):
         cv.destroyAllWindows()
         print("lines: {0}".format(pntslist))
         return pntslist
+    '''
+
+    @staticmethod
+    def select_lines(img, windowtext="Select Lines"):
+        """Draw multiple lines in an image and return (x0,y0,x1,y1) for each rectangle
+
+        :Parameters: windowtext=name of form
+        :Returns: list of shapes [shapenumber][(x0,y0),(x1,y1)]
+        :rtype: object
+        """
+        '''
+        fx = 1024 / img.shape[1]
+        if fx < 1:
+            frame = cv.resize(img, None, fx=fx, fy=fx)
+            img0 = frame.copy()  # avoid drawing inside the copy
+        else:
+            img0 = img.copy()
+        '''
+
+        img0 = img.copy()
+        fx = 1
+
+        cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
+
+        refPt = []
+        cropping = False
+        img0 = ims.Image.Convert.toRGB(img0)
+
+        pntslist = []
+
+        def click_and_crop(event, x, y, flags, param):
+            # grab references to the global variables
+            global refPt, cropping
+
+            # if the left mouse button was clicked, record the starting
+            # (x, y) coordinates and indicate that cropping is being
+            # performed
+            if event == cv.EVENT_LBUTTONDOWN:
+                refPt = [(x, y)]
+                cropping = True
+
+            # check to see if the left mouse button was released
+            elif event == cv.EVENT_LBUTTONUP:
+                # record the ending (x, y) coordinates and indicate that
+                # the cropping operation is finished
+                refPt.append((x, y))
+                cropping = False
+
+                # draw the final line from point 0 to 1
+                cv.line(img0, refPt[0], refPt[1], (0, 255, 0), 2)
+
+                refPt2 = [(int(refPt[0][0] * 1 / fx), int(refPt[0][1] * 1 / fx)),
+                          (int(refPt[1][0] * 1 / fx), int(refPt[1][1] * 1 / fx))]
+                pntslist.append(refPt2)
+                cv.imshow(windowtext, img0)
+
+            # check to see if the mouse is moving and the left mouse button is down
+            elif event == cv.EVENT_MOUSEMOVE and flags == cv.EVENT_FLAG_LBUTTON:
+                # draw a temporary line from point 0 to the current mouse position
+                tempImg = img0.copy()
+                cv.line(tempImg, refPt[0], (x, y), (0, 255, 0), 2)
+                cv.imshow(windowtext, tempImg)
+
+
+            #clone = img0.copy()
+        cv.setMouseCallback(windowtext, click_and_crop)
+        cv.imshow(windowtext, img0)
+
+        # keep looping until the 'q' key is pressed
+        while True:
+            # display the image and wait for a keypress
+            key = cv.waitKey(1) & 0xFF
+
+            # if the 'r' key is pressed, reset the cropping region
+            if key == ord("r"):
+                img0 = clone.copy()
+            # monitor escape
+            elif key == 27:
+                break
+            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                break
+
+        # close all open windows
+        cv.destroyAllWindows()
+        print("lines: {0}".format(pntslist))
+        return pntslist
+
 
     @staticmethod
     def select_areas(img, windowtext="Select Areas"):
@@ -1359,25 +1440,35 @@ class Dialogs(object):
                 refPt.append((x, y))
                 cropping = False
 
-                # draw a rectangle around the region of interest
+                # draw the final line from point 0 to 1
                 cv.rectangle(img0, refPt[0], refPt[1], (0, 255, 0), 2)
-                # print(refPt)
+
                 refPt2 = [(int(refPt[0][0] * 1 / fx), int(refPt[0][1] * 1 / fx)),
                           (int(refPt[1][0] * 1 / fx), int(refPt[1][1] * 1 / fx))]
-                # print(refPt2)
                 pntslist.append(refPt2)
                 cv.imshow(windowtext, img0)
+
+            # check to see if the mouse is moving and the left mouse button is down
+            elif event == cv.EVENT_MOUSEMOVE and flags == cv.EVENT_FLAG_LBUTTON:
+                # draw a temporary line from point 0 to the current mouse position
+                tempImg = img0.copy()
+                cv.rectangle(tempImg, refPt[0], (x,y), (0, 255, 0), 2)
+
+                cv.imshow(windowtext, tempImg)
+
+
+            #clone = img0.copy()
+        cv.setMouseCallback(windowtext, click_and_crop)
+        cv.imshow(windowtext, img0)
 
         clone = img0.copy()
 
         # cv.namedWindow(windowtext)
-        cv.setMouseCallback(windowtext, click_and_crop)
         zoomfactor = 1
 
         # keep looping until the 'q' key is pressed
         while True:
             # display the image and wait for a keypress
-            cv.imshow(windowtext, img0)
             key = cv.waitKey(1) & 0xFF
 
             # if the 'r' key is pressed, reset the cropping region
