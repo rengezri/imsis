@@ -1313,49 +1313,37 @@ class Dialogs(object):
         :Returns: list of shapes [shapenumber][(x0,y0),(x1,y1)]
         :rtype: object
         """
-        '''
-        fx = 1024 / img.shape[1]
-        if fx < 1:
-            frame = cv.resize(img, None, fx=fx, fy=fx)
-            img0 = frame.copy()  # avoid drawing inside the copy
-        else:
-            img0 = img.copy()
-        '''
 
         img0 = img.copy()
-        fx = 1
 
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
         refPt = []
-        cropping = False
         img0 = ims.Image.Convert.toRGB(img0)
 
         pntslist = []
 
         def click_and_crop(event, x, y, flags, param):
             # grab references to the global variables
-            global refPt, cropping
+            global refPt
 
             # if the left mouse button was clicked, record the starting
             # (x, y) coordinates and indicate that cropping is being
             # performed
             if event == cv.EVENT_LBUTTONDOWN:
                 refPt = [(x, y)]
-                cropping = True
 
             # check to see if the left mouse button was released
             elif event == cv.EVENT_LBUTTONUP:
                 # record the ending (x, y) coordinates and indicate that
                 # the cropping operation is finished
                 refPt.append((x, y))
-                cropping = False
 
                 # draw the final line from point 0 to 1
                 cv.line(img0, refPt[0], refPt[1], (0, 255, 0), 2)
 
-                refPt2 = [(int(refPt[0][0] * 1 / fx), int(refPt[0][1] * 1 / fx)),
-                          (int(refPt[1][0] * 1 / fx), int(refPt[1][1] * 1 / fx))]
+                refPt2 = [(int(refPt[0][0] * 1), int(refPt[0][1] * 1)),
+                          (int(refPt[1][0] * 1), int(refPt[1][1] * 1))]
                 pntslist.append(refPt2)
                 cv.imshow(windowtext, img0)
 
@@ -1366,8 +1354,8 @@ class Dialogs(object):
                 cv.line(tempImg, refPt[0], (x, y), (0, 255, 0), 2)
                 cv.imshow(windowtext, tempImg)
 
+            # clone = img0.copy()
 
-            #clone = img0.copy()
         cv.setMouseCallback(windowtext, click_and_crop)
         cv.imshow(windowtext, img0)
 
@@ -1376,11 +1364,8 @@ class Dialogs(object):
             # display the image and wait for a keypress
             key = cv.waitKey(1) & 0xFF
 
-            # if the 'r' key is pressed, reset the cropping region
-            if key == ord("r"):
-                img0 = clone.copy()
             # monitor escape
-            elif key == 27:
+            if key == 27:
                 break
             if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
                 break
@@ -1389,7 +1374,6 @@ class Dialogs(object):
         cv.destroyAllWindows()
         print("lines: {0}".format(pntslist))
         return pntslist
-
 
     @staticmethod
     def select_areas(img, windowtext="Select Areas"):
@@ -1400,51 +1384,36 @@ class Dialogs(object):
         :Returns: list of shapes [shapenumber][(x0,y0),(x1,y1)]
         """
 
-        '''
-        fx = 1024 / img.shape[1]
-        if fx < 1:
-            frame = cv.resize(img, None, fx=fx, fy=fx)
-            img0 = frame.copy()  # avoid drawing inside the copy
-        else:
-            img0 = img.copy()
-        '''
-
         img0 = img.copy()
-        zoomfactor = 1
-        fx = zoomfactor
 
-        # print(fx)
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
         refPt = []
-        cropping = False
         img0 = ims.Image.Convert.toRGB(img0)
 
         pntslist = []
 
         def click_and_crop(event, x, y, flags, param):
             # grab references to the global variables
-            global refPt, cropping
+            global refPt
 
             # if the left mouse button was clicked, record the starting
             # (x, y) coordinates and indicate that cropping is being
             # performed
             if event == cv.EVENT_LBUTTONDOWN:
                 refPt = [(x, y)]
-                cropping = True
 
             # check to see if the left mouse button was released
             elif event == cv.EVENT_LBUTTONUP:
                 # record the ending (x, y) coordinates and indicate that
                 # the cropping operation is finished
                 refPt.append((x, y))
-                cropping = False
 
                 # draw the final line from point 0 to 1
                 cv.rectangle(img0, refPt[0], refPt[1], (0, 255, 0), 2)
 
-                refPt2 = [(int(refPt[0][0] * 1 / fx), int(refPt[0][1] * 1 / fx)),
-                          (int(refPt[1][0] * 1 / fx), int(refPt[1][1] * 1 / fx))]
+                refPt2 = [(int(refPt[0][0] * 1), int(refPt[0][1] * 1)),
+                          (int(refPt[1][0] * 1), int(refPt[1][1] * 1))]
                 pntslist.append(refPt2)
                 cv.imshow(windowtext, img0)
 
@@ -1452,46 +1421,23 @@ class Dialogs(object):
             elif event == cv.EVENT_MOUSEMOVE and flags == cv.EVENT_FLAG_LBUTTON:
                 # draw a temporary line from point 0 to the current mouse position
                 tempImg = img0.copy()
-                cv.rectangle(tempImg, refPt[0], (x,y), (0, 255, 0), 2)
+                cv.rectangle(tempImg, refPt[0], (x, y), (0, 255, 0), 2)
 
                 cv.imshow(windowtext, tempImg)
 
-
-            #clone = img0.copy()
         cv.setMouseCallback(windowtext, click_and_crop)
         cv.imshow(windowtext, img0)
-
-        clone = img0.copy()
-
-        # cv.namedWindow(windowtext)
-        zoomfactor = 1
 
         # keep looping until the 'q' key is pressed
         while True:
             # display the image and wait for a keypress
             key = cv.waitKey(1) & 0xFF
 
-            # if the 'r' key is pressed, reset the cropping region
-            if key == ord("r"):
-                img0 = clone.copy()
             # monitor escape
-            elif key == 27:
+            if key == 27:
                 break
             if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
                 break
-
-            if key == 43:
-                zoomfactor = zoomfactor * 1.25
-                img0 = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
-                fx = zoomfactor
-            if key == 45:
-                zoomfactor = zoomfactor * 0.75
-                img0 = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
-                fx = zoomfactor
-            if key == 114:
-                zoomfactor = 1
-                img0 = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
-                fx = zoomfactor
 
         # close all open windows
         cv.destroyAllWindows()
@@ -1596,9 +1542,9 @@ class Dialogs(object):
         zoomfactor = 1
         hidemask = False
 
-        minlast=0
-        maxlast=0
-        blurlast=0
+        minlast = 0
+        maxlast = 0
+        blurlast = 0
 
         while (1):
             min = cv.getTrackbarPos("Min", windowtext)
@@ -1608,11 +1554,10 @@ class Dialogs(object):
                 blur = blur + 1
 
             if (min != minlast) or (max != maxlast) or (blur != blurlast):
-                minlast=min
-                maxlast=max
-                blurlast=blur
+                minlast = min
+                maxlast = max
+                blurlast = blur
                 thresh1 = subfunction(frame, min, max, blur, zoomfactor, hidemask)
-
 
             cv.imshow(windowtext, thresh1)
             k = cv.waitKey(1) & 0xFF
@@ -1647,15 +1592,15 @@ class Dialogs(object):
         :Returns: Image_Thresholded, Min,Max,Blur
         """
 
-        def subfunction(img, min,max,blur, minArea, maxArea, dt, zoomfactor, hidemask):
+        def subfunction(img, min, max, blur, minArea, maxArea, dt, zoomfactor, hidemask):
             if minArea >= maxArea:
                 minArea = maxArea - 1  # avoid division by 0
-            #img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
+            # img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
-            #thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
+            # thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
             fn = 'overlay.png'
-            print(min,max,blur,minArea,maxArea,dt)
+            print(min, max, blur, minArea, maxArea, dt)
             try:
                 overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
                                                                                                             thresh0,
@@ -1670,8 +1615,8 @@ class Dialogs(object):
 
             return overlay2
 
-        def subfunction_final(img, min, max, blur,minArea,maxArea,dt):
-            print("final ",min,max,blur,minArea,maxArea,dt)
+        def subfunction_final(img, min, max, blur, minArea, maxArea, dt):
+            print("final ", min, max, blur, minArea, maxArea, dt)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
             overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
@@ -1695,7 +1640,7 @@ class Dialogs(object):
 
         frame = img.copy()
         orig = img.copy()
-        maxarealimit = int(img.shape[0]*img.shape[1]*0.1)
+        maxarealimit = int(img.shape[0] * img.shape[1] * 0.1)
 
         cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
 
@@ -1706,9 +1651,9 @@ class Dialogs(object):
         zoomfactor = 1
         hidemask = False
 
-        minArealast=0
-        maxArealast=0
-        dtlast=0
+        minArealast = 0
+        maxArealast = 0
+        dtlast = 0
 
         while (1):
             minArea = cv.getTrackbarPos("MinArea", windowtext)
@@ -1716,11 +1661,10 @@ class Dialogs(object):
             dt = cv.getTrackbarPos("DistanceThreshold", windowtext)
 
             if (dt != dtlast) or (minArea != minArealast) or (maxArea != maxArealast):
-                thresh1 = subfunction(frame,min,max,blur, minArea, maxArea, dt, zoomfactor, hidemask)
+                thresh1 = subfunction(frame, min, max, blur, minArea, maxArea, dt, zoomfactor, hidemask)
                 minArealast = minArea
                 maxArealast = maxArea
                 dtlast = dt
-
 
             cv.imshow(windowtext, resizeimg(thresh1))
             k = cv.waitKey(1) & 0xFF
@@ -1742,8 +1686,8 @@ class Dialogs(object):
 
         cv.destroyAllWindows()
         print("MaskWithBackground: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
-        print("final ", min, max, blur, minArea, maxArea, dt,minArealast,maxArealast,dtlast)
-        overlay = subfunction_final(orig, min,max,blur,minArea, maxArea, dt)
+        print("final ", min, max, blur, minArea, maxArea, dt, minArealast, maxArealast, dtlast)
+        overlay = subfunction_final(orig, min, max, blur, minArea, maxArea, dt)
         return overlay, minArea, maxArea, dt / 100
 
     @staticmethod
