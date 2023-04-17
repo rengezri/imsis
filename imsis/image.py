@@ -19,6 +19,8 @@ from matplotlib import pyplot as plt
 import numpy.random as random
 from matplotlib.colors import hsv_to_rgb
 from datetime import datetime
+from scipy import ndimage
+
 
 
 class Image(object):
@@ -446,6 +448,8 @@ class Image(object):
 
             gradSup = nonmaxsuppression(im, grad)
             return gradSup, thetaQ
+
+
 
         @staticmethod
         def nonlocalmeans(img, h=10, templatewindowsize=7, searchwindowsize=21):
