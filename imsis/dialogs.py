@@ -1134,9 +1134,12 @@ class Dialogs(object):
             # monitor escape
             elif key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
 
@@ -1224,9 +1227,12 @@ class Dialogs(object):
             # monitor escape
             elif key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
         print("points: {0}".format(pntslist))
@@ -1296,9 +1302,12 @@ class Dialogs(object):
             # monitor escape
             elif key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
         print("lines: {0}".format(pntslist))
@@ -1367,9 +1376,12 @@ class Dialogs(object):
             # monitor escape
             if key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
         print("lines: {0}".format(pntslist))
@@ -1436,9 +1448,12 @@ class Dialogs(object):
             # monitor escape
             if key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
         print("areas: {0}".format(pntslist))
@@ -1490,9 +1505,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
         print("Mask: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
         thresh1 = subfunction(img, min, max, blur)
@@ -1563,7 +1581,11 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
             if k == 43:
                 zoomfactor = zoomfactor * 1.25
@@ -1670,7 +1692,11 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
             if k == 43:
                 zoomfactor = zoomfactor * 1.25
@@ -1731,7 +1757,11 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
 
         cv.destroyAllWindows()
@@ -1779,9 +1809,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
 
         filtered, mask = ims.Image.Process.FD_bandpass_filter(img, bandcenter, bandwidth, bptype=lptype)
@@ -1824,9 +1857,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
         print("Adjust HSL: image, Hue={},Sat={},Light={}".format(Hue, Sat - 255, Light - 255))
         hls = ims.Image.Adjust.adjust_HSL(img, Hue, Sat - 255, Light - 255)
@@ -1868,9 +1904,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
         print("Adjust HSV: image, Hue={},Sat={},Value={}".format(Hue, Sat - 255, Val - 255))
         hls = ims.Image.Adjust.adjust_HSV(img, Hue, Sat - 255, Val - 255)
@@ -1919,9 +1958,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
         out = ims.Image.Adjust.adjust_contrast_brightness(img, c, b)
         out = ims.Image.Adjust.adjust_gamma(out, g)
@@ -1967,9 +2009,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
 
         a = img0
@@ -2042,9 +2087,12 @@ class Dialogs(object):
             k = cv.waitKey(1) & 0xFF
             if k == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
 
         mask = cv.morphologyEx(img, cv.MORPH_CLOSE, se1)
@@ -2148,9 +2196,12 @@ class Dialogs(object):
 
             if key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         # close all open windows
         cv.destroyAllWindows()
 
@@ -2233,9 +2284,12 @@ class Dialogs(object):
             #    fx1=1
             if key == 27:
                 break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+            try:
+                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
+                    break
+            except:
+                print("window already closed.")
                 break
-
         cv.destroyAllWindows()
 
     @staticmethod

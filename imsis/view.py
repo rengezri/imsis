@@ -153,7 +153,14 @@ class View(object):
         cdf = hist.cumsum()
         cdf_normalized = cdf * hist.max() / cdf.max()  # this line not necessary.
         plt.figure(figsize=(8, 8))
-        plt.gcf().canvas.set_window_title(window_title)
+
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+            print("ERROR: Matplotlib versioning errors..")
+
+
         gridspec.GridSpec(3, 1)
         plt.subplot2grid((3, 1), (0, 0), colspan=1, rowspan=2)
         if len(img.shape) == 2:
@@ -201,7 +208,13 @@ class View(object):
         plt.figure(figsize=((cols + 1) * 2, rows * 4))
 
         # plt.figure(figsize=((cols+1)*2,rows*4))
-        plt.gcf().canvas.set_window_title(window_title)
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+            print("ERROR: Matplotlib versioning errors..")
+
+
         gridspec.GridSpec(2, cols)
         # print('gridspec figsize',2,cols,cols*8,8)
 
@@ -266,7 +279,14 @@ class View(object):
         img = ims.Image.resize(img, resize)
         xx, yy = np.mgrid[0:img.shape[0], 0:img.shape[1]]
         fig = plt.figure()
-        plt.gcf().canvas.set_window_title('3DPlot')
+        window_title="3DPlot"
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+            print("ERROR: Matplotlib versioning errors..")
+
+
         ax = fig.gca(projection='3d')
         ax.plot_surface(xx, yy, img, rstride=1, cstride=1, cmap=plt.cm.gray,
                         linewidth=0)

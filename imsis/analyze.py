@@ -30,6 +30,7 @@ import scipy.stats as stats
 from scipy import fftpack
 import random as rng
 from collections import deque
+from enum import Enum
 
 rng.seed(12345)
 
@@ -1286,7 +1287,7 @@ class Analyze(object):
         def varianceOfLaplacian(self, img):
             """Variance of Laplacian (LAPV) Pech 2000
             """
-            lap = cv.Laplacian(img, ddepth=-1)  # cv2.cv.CV_64F)
+            lap = cv.Laplacian(img, ddepth=-1)  # cv.cv.CV_64F)
             stdev = cv.meanStdDev(lap)[1]
             s = stdev[0] ** 2
             return s[0]
@@ -2098,7 +2099,14 @@ class Analyze(object):
                                                                                                   self.s_center_perc,
                                                                                                   self.s_size_perc)
 
+
+
     class FeatureProperties(object):
+
+        class ColorScheme(Enum):
+            Original = 1
+            Size = 2
+            Random = 3
 
         propertynames = ['Area',
                          'EquivalentDiameter',
@@ -2121,8 +2129,9 @@ class Analyze(object):
                          'ColorValue',
                          'Filename']
 
+
         @staticmethod
-        def _process_contours(orig, thresh, contours, minarea, maxarea, filename):
+        def _process_contours(orig, thresh, contours, minarea=0, maxarea=-1, filename="", colorscheme=ColorScheme.Random):
             cntsSorted = sorted(contours, key=lambda x: cv.contourArea(x))
 
             imggray = ims.Image.Convert.toGray(orig)
@@ -2214,21 +2223,33 @@ class Analyze(object):
                 colvalidx = Analyze.FeatureProperties.propertynames.index("ColorValue")
 
                 for i in range(len(cntsSorted_new)):
-                    area = cv.contourArea(cntsSorted_new[i]) - minarea + 1
-                    colvi = int(area * mularea)
-                    coln = colors[colvi]
+                    if colorscheme==Analyze.FeatureProperties.ColorScheme.Original:
+                        cx, cy, w, h = cv.boundingRect(cntsSorted_new[i])
+                        v = int(orig[int(cy+h/2),int(cx+w/2)])
+                        area = cv.contourArea(cntsSorted_new[i]) - minarea #had +1 here, removed
+                        colvi = int(area * mularea)
+                        coln=[v,v,v] #output is original image pixel value
+                    else:
+                        if colorscheme==Analyze.FeatureProperties.ColorScheme.Size:
+                            area = cv.contourArea(cntsSorted_new[i]) - minarea #had +1 here, removed
+                            colvi = int(area * mularea)
+                            coln = colors[colvi] #output is area based intensity
+                        else:
+                            colvi=0
+                            coln = np.uint8(np.random.random_integers(0, 255, 3)).tolist()
                     featureproperties[i][colvalidx] = colvi
                     img6 = cv.drawContours(img5c, cntsSorted_new, i, coln, -1)
 
                 print("Number of contours detected = %d" % len(featureproperties))
 
-                out = cv.bitwise_and(img6, img6, mask=thresh)
-                overlay = cv.addWeighted(img5b, 0.7, out, 0.3, 0)
+                labels = cv.bitwise_and(img6, img6, mask=thresh)
+                overlay = cv.addWeighted(img5b, 0.7, labels, 0.3, 0)
+
             else:
                 print("Warning: No contours found.")
                 overlay = img5.copy()
-                out = img5.copy()
-            return overlay, out, featureproperties
+                labels = img5.copy()
+            return overlay, labels, featureproperties
 
         @staticmethod
         def _contours_with_distance_map(orig, thresh, distance_threshold=0.2):
@@ -2267,7 +2288,7 @@ class Analyze(object):
 
         @staticmethod
         def get_featureproperties(orig, thresh, minarea=0,
-                                  maxarea=-1, applydistancemap=True, distance_threshold=0.2, filename=""):
+                                  maxarea=-1, applydistancemap=True, distance_threshold=0.2, filename="", colorscheme=ColorScheme.Size):
             """Determine the list of features with properties per patch
 
             threshold value for the applied image mask.
@@ -2302,7 +2323,7 @@ class Analyze(object):
 
 
             :Parameters: original_image, threshold_image, minarea, maxarea, apply_distance_map, distance_threshold
-            :Returns: overlay, out, markers featureproperties
+            :Returns: overlay, labels, markers featureproperties
             """
 
             # img = ims.Image.Convert.toGray(orig)
@@ -2322,9 +2343,9 @@ class Analyze(object):
                 else:
                     contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
 
-            overlay, out, featureproperties = Analyze.FeatureProperties._process_contours(orig, thresh, contours,
-                                                                                          minarea, maxarea, filename)
-            return overlay, out, markers, featureproperties
+            overlay, labels, featureproperties = Analyze.FeatureProperties._process_contours(orig, thresh, contours,
+                                                                                          minarea, maxarea, filename,colorscheme=colorscheme)
+            return overlay, labels, markers, featureproperties
 
         def plot_feature_size_distribution(im_labeled, featureproperties, path_out, autoclose=0):
             """Plot the feature size distribution
@@ -2349,11 +2370,16 @@ class Analyze(object):
             X = np.arange(1, len(arealist) + 1)
 
             plt.figure(figsize=(8, 4))
-            plt.gcf().canvas.set_window_title('Size Distribution')
+            try:
+                plt.gcf().canvas.set_window_title('Size Distribution')
+            except:
+                print("Matplotlib set_window_title changed depreciated and removed.")
+                plt.gcf().canvas.setWindowTitle('Size Distribution')
+
 
             gridspec.GridSpec(1, 2)
             plt.subplot2grid((1, 2), (0, 0), colspan=1, rowspan=1)
-            plt.imshow(im_labeled)
+            plt.imshow(ims.Image.Convert.BGRtoRGB(im_labeled))
 
             plt.subplot2grid((1, 2), (0, 1), colspan=1, rowspan=1)
 
@@ -2437,6 +2463,8 @@ class Analyze(object):
                                  thickness=2)
             return img
 
+
+
         def save_boundingboxes(image, featureproperties, path_out, max_features_per_page=50):
             """Plot a patched image of features found
                 :Parameters: image, featureproperties, path_out
@@ -2459,6 +2487,115 @@ class Analyze(object):
                 bboximage = img[y:y + h, x:x + w]
                 ims.Image.save(bboximage, path_out + "patches\label_{}.png".format(j), verbose=False)
                 j = j + 1
+
+        def label_enhance_intensity(image):
+            """Modify label, enhance the histogram
+                :Parameters: image_labels
+                :Returns: image
+            """
+            # Convert the image to grayscale
+            gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+            # Stretch the histogram between gray level 64 and 255
+            stretched = cv.equalizeHist(gray)
+            stretched = cv.normalize(stretched, None, (32 + 16), 255, cv.NORM_MINMAX)
+
+            # Convert the image back to BGR color space
+            enhanced = cv.cvtColor(stretched, cv.COLOR_GRAY2BGR)
+
+            # Set black pixels to (0, 0, 0)
+            mask = (gray == 0)
+            enhanced[mask] = [0, 0, 0]
+            return enhanced
+
+        def label_set_black_background(image):
+            """Modify label, set blackground to (0,0,0)
+                :Parameters: image_labels
+                :Returns: image
+            """
+            # Convert the image to grayscale
+            gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+            # Calculate the histogram of pixel intensities
+            hist = cv.calcHist([gray], [0], None, [256], [0, 256])
+
+            # Find the intensity value with the most pixels
+            background_intensity = np.argmax(hist)
+
+            # Set the background pixels to black
+            black_background = image.copy()
+            black_background[gray == background_intensity] = [0, 0, 0]
+
+            return black_background
+
+        def label_recolor_to_area(labels):
+            """Modify label, recolor the intensities by area (smaller=brighter)
+            note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
+                :Parameters: image_labels
+                :Returns: image
+            """
+            # Convert the image to grayscale
+            gray = cv.cvtColor(labels, cv.COLOR_BGR2GRAY)
+
+            # Find contours in the grayscale image
+            contours, _ = cv.findContours(gray, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+            # Sort the contours based on their areas (from largest to smallest)
+            contours = sorted(contours, key=cv.contourArea, reverse=True)
+
+            # Calculate the maximum contour area
+            max_area = cv.contourArea(contours[0])
+
+            # Create a mask image to draw the contours
+            mask = np.zeros(gray.shape, dtype=np.uint8)
+
+            # Assign reversed gray levels based on the area size of each contour
+            for i, contour in enumerate(contours):
+                gray_level = int(255 - (128 * cv.contourArea(contour) / max_area))  # Reverse and scale gray level
+                cv.drawContours(mask, [contour], -1, gray_level, thickness=cv.FILLED)
+
+            # Apply the mask to the grayscale image
+            # modified_gray = cv.bitwise_and(gray, mask)
+            modified_gray = mask
+
+            # Convert the modified grayscale image back to BGR color space
+            enhanced = cv.cvtColor(modified_gray, cv.COLOR_GRAY2BGR)
+
+            return enhanced
+
+        def label_recolor_to_original_intensities(labels, source_image):
+            """Modify label, recolor the intensities by source image pixelsintensity
+                note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
+                :Parameters: image_labels
+                :Returns: image
+            """
+            # Convert the image to grayscale
+            gray = cv.cvtColor(labels, cv.COLOR_BGR2GRAY)
+            source_image = ims.Image.Convert.toGray(source_image)
+
+            # Find contours in the grayscale image
+            contours, _ = cv.findContours(gray, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+            # Sort the contours based on their areas (from largest to smallest)
+            contours = sorted(contours, key=cv.contourArea, reverse=True)
+
+            # Create a mask image to draw the contours
+            mask = np.zeros(gray.shape, dtype=np.uint8)
+
+            # Assign gray levels based on the center pixel of each contour in the source image
+            for contour in contours:
+                # Calculate the center of the contour
+
+                cx, cy, w, h = cv.boundingRect(contour)
+                gray_level = int(source_image[int(cy + h / 2), int(cx + w / 2)])
+
+                # Draw the contour on the mask with the assigned gray level
+                cv.drawContours(mask, [contour], -1, gray_level, thickness=cv.FILLED)
+
+            # Convert the mask image to BGR color space
+            enhanced = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
+
+            return enhanced
 
     class OpticalFlow(object):
         def draw_flow(img, flow, step=16):

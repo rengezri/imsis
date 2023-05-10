@@ -264,6 +264,40 @@ class Image(object):
         return out
 
     @staticmethod
+    def add_overlay(bg_img, fg_img):
+        """add 2 images, foregrond image with black as mask overlays a background image with black as mask
+        :Parameters: image1, image2
+        :Returns: image
+        """
+
+        w,h,_=bg_img.shape
+        w1,h1,_ = fg_img.shape
+        if w1>w :
+            w=w1
+        if h1>h:
+            h=h1
+        bg_img1 = np.zeros((w, h,3), np.uint8)
+        fg_img1= np.zeros((w, h,3), np.uint8)
+        bg_img1[0: 0 + bg_img.shape[0], 0: 0 + bg_img.shape[1]] = bg_img
+        fg_img1[0: 0 + fg_img.shape[0], 0: 0 + fg_img.shape[1]] = fg_img
+
+
+        # create a mask of the foreground image
+        fg_mask = cv.cvtColor(fg_img1, cv.COLOR_BGR2GRAY)
+        _, fg_mask = cv.threshold(fg_mask, 1, 255, cv.THRESH_BINARY)
+
+        # invert the mask so that the foreground is white and the background is black
+        fg_mask_inv = cv.bitwise_not(fg_mask)
+
+        # apply the mask to the foreground and background images
+        fg = cv.bitwise_and(fg_img1, fg_img1, mask=fg_mask)
+        bg = cv.bitwise_and(bg_img1, bg_img1, mask=fg_mask_inv)
+
+        # combine the foreground and background images
+        result = cv.add(fg, bg)
+        return result
+
+    @staticmethod
     def new(height, width):
         """Create a new blank image
 
@@ -870,7 +904,7 @@ class Image(object):
             :Parameters: image, sigma=0.25
             :Returns: image
             """
-            noise_img = img.astype(np.float)
+            noise_img = img.astype(np.cfloat)
             stddev = prob * 100.0
             noise = np.random.randn(*img.shape) * stddev
             noise_img += noise
@@ -982,6 +1016,16 @@ class Image(object):
                 :Returns: image
                 """
                 im_color = cv.applyColorMap(img, cv.COLORMAP_RAINBOW)
+                return im_color
+
+            @staticmethod
+            def falsecolor_hot(img):
+                """False color rainbow
+
+                :Parameters: image
+                :Returns: image
+                """
+                im_color = cv.applyColorMap(img, cv.COLORMAP_HOT)
                 return im_color
 
             @staticmethod
@@ -1876,6 +1920,9 @@ class Image(object):
             if (channels != 3):
                 img1 = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
                 # print('Image converted from Grayscale to RGB')
+            if (channels ==3 and img.shape[2]==4):
+                img1 = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+                #remove alpha channel
             return img1
 
         @staticmethod
@@ -1901,6 +1948,9 @@ class Image(object):
             """
             img1 = img
             channels = len(img.shape)
+            if (channels ==3 and img.shape[2]==4):
+                img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+                #remove alpha channel
             if (channels > 2):
                 b, g, r = cv.split(img)  # get b,g,r
                 img1 = cv.merge([r, g, b])  # switch it to rgb (OpenCV uses BGR)
@@ -1915,6 +1965,9 @@ class Image(object):
             """
             img1 = img
             channels = len(img.shape)
+            if (channels ==3 and img.shape[2]==4):
+                img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+                #remove alpha channel
             if (channels > 2):
                 r, g, b = cv.split(img)  # get b,g,r
                 img1 = cv.merge([b, g, r])  # switch it to rgb (OpenCV uses BGR)
@@ -2769,3 +2822,28 @@ class Image(object):
             res = cv.bitwise_and(res, thresh)
             res = Image.Process.Falsecolor.grayscale_to_color(res, col)
             return res
+
+        @staticmethod
+        def remove_features_at_boundaries(img, black_background=True):
+            """Remove any of the features that are touching the boundaries
+
+            :Parameters: image (grayscale 8bit)
+            :Returns: image without features that touch the boundaries
+            """
+
+            if black_background==True:
+                img = Image.Adjust.invert(img)
+            height, width = img.shape[:2]
+            mask = np.zeros((height+2, width+2), np.uint8)
+            new_img = img.copy()
+            for y in range(height):
+                for x in range(width):
+                    if x == 0 or y == 0 or x == width-1 or y == height-1:
+                        # Floodfill from boundary pixels with white color (255)
+                        cv.floodFill(new_img, mask, (x, y), (255, 255, 255))
+            # Invert the image so that the black pixels are the features to remove
+            if black_background==True:
+                result = Image.Adjust.invert(new_img)
+            else:
+                result = new_img
+            return result
