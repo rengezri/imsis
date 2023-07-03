@@ -15,7 +15,6 @@ import collections
 
 print("GUI Dialogs")
 
-
 text = "plain textbox"
 ims.Dialogs.textbox(text, 'Textbox')
 
@@ -26,9 +25,8 @@ text = text + r"<i>This is text in italic</i> <br>"
 text = text + r"<h1 style=""color:blue;"">This is a heading in blue</h1> <br> <p style=""color:red;"">This is a paragraph in red.</p>"
 
 st = r"<figure> <img src=""./images/rice.jpg"" alt=""Rice"" style=""width:50%"">  <figcaption>Fig.1 - Rice</figcaption> </figure>"
-text = text +st
+text = text + st
 
 ims.Dialogs.textbox_html(text, 'Textbox HTML')
-
 
 print("Ready.")

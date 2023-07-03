@@ -29,6 +29,13 @@ im_rice_gray_noise = ims.Image.Process.gaussian_noise(im_rice_gray, 0.1)
 
 autoclose = 1.2
 
+img2_1 = ims.Image.Process.cannyedge_auto(im_rice)
+img2_2, thetaq = ims.Image.Process.gradient_image_nonmaxsuppressed(img2_1, 5, 40)
+img2_3 = ims.Image.Process.pencilsketch((im_rice))
+ims.View.plot_list([img2_1, img2_2, img2_3], ['Canny edge auto', 'Gradientnonmaxsupp', 'Pencilsketch'],
+                   window_title='Image Edge Enhancement', autoclose=autoclose)
+
+
 img2_1 = ims.Image.Process.salt_and_pepper_noise(im_rice, 0.35)
 img2_2 = ims.Image.Process.replace_black_pixels_by_median(img2_1)
 img2_3 = ims.Image.Process.replace_black_pixels_using_nonlocalmeans(img2_1)
@@ -54,19 +61,10 @@ img2_2 = ims.Image.Process.deconvolution_wiener(im_rice, d=5, noise=11)
 ims.View.plot_list([im_rice, img2_1, img2_2], ['Source', 'Unsharpenmask', 'Deconv'], window_title='Image Sharpen',
                    autoclose=autoclose)
 
-img2_1 = ims.Image.Process.cannyedge_auto(im_rice)
-img2_2, thetaq = ims.Image.Process.gradient_image_nonmaxsuppressed(img2_1, 5, 40)
-img2_3 = ims.Image.Process.pencilsketch((im_rice))
-ims.View.plot_list([img2_1, img2_2, img2_3], ['Canny edge auto', 'Gradientnonmaxsupp', 'Pencilsketch'],
-                   window_title='Image Edge Enhancement', autoclose=autoclose)
+
 
 img2_1, angle = ims.Image.Process.gradient_image(im_rice)
 ims.View.plot_list([img2_1, angle], ['Gradient_mag', 'Gradient_angle'], window_title='Image Gradient',
-                   autoclose=autoclose)
-
-img3_1 = ims.Image.Process.Falsecolor.falsecolor_jet(im_rice)
-img3_2 = ims.Image.Process.Falsecolor.falsecolor_rainbow(im_rice)
-ims.View.plot_list([img3_1, img3_2], ['Falsecolor jet', 'Falsecolor rainbow'], window_title='Image False Colour',
                    autoclose=autoclose)
 
 img2_1 = im_rice_gray
@@ -93,12 +91,10 @@ img2_1 = ims.Image.Process.salt_and_pepper_noise(im_rice, 0.05)
 col = ims.Analyze.get_dominant_color(im_rice)
 img2_1 = ims.Image.Convert.toGray(img2_1)
 img2_1 = ims.Image.Binary.morphology_erode(img2_1, 9)
-img2_2 = ims.Image.Process.Falsecolor.grayscale_to_color(img2_1, col)
 print(ims.Image.info(img2_1))
-
-img2_3 = ims.Image.Process.remove_islands_colour(img2_2, kernel=3)
-ims.View.plot_list([img2_1, img2_2, img2_3],
-                   ['Salt and Pepper Noise and erode Gray', 'Color', 'Islands Removed'],
+img2_2 = ims.Image.Process.remove_islands_colour(img2_2, kernel=3)
+ims.View.plot_list([img2_1, img2_2],
+                   ['Salt and Pepper Noise and erode Gray', 'Islands Removed'],
                    window_title='Image Add Noise', autoclose=autoclose)
 
 print('Ready.')

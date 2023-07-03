@@ -29,6 +29,9 @@ im_rice_gray_noise = ims.Image.Process.gaussian_noise(im_rice_gray, 0.1)
 
 autoclose = 1.2
 
+
+
+
 info1 = ims.Image.unique_colours(im_blueberry)
 info2 = ims.Image.unique_colours(im_rice)
 ims.View.plot_list_with_histogram([im_blueberry, im_rice], ['cols {}'.format(info1), 'cols {}'.format(info2)],
@@ -129,5 +132,12 @@ ims.View.plot_list([im_rice, img2_1, img2_2, img2_3], ['Src', 'cannyedge', 'skel
 img2_1 = ims.Image.Process.gradient_removal(im_rice_gray, filtersize=513, sigmaX=128)
 ims.View.plot_list([im_rice_gray, img2_1], ['Source', 'GradientRemoved'],
                    window_title='Image Edge Enhancement', autoclose=autoclose)
+
+
+im_rice_small = ims.Image.resize(im_rice,0.5)
+img2_1 = ims.Image.add_overlay(im_rice,im_rice_small)
+ims.View.plot_list([im_rice_gray, img2_1], ['Source', 'overlay'],
+                   window_title='Overlay', autoclose=autoclose)
+
 
 print('Ready.')

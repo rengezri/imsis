@@ -58,7 +58,7 @@ img1b = ims.Image.Convert.toRGB(img1b)
 
 img4 = ims.Image.Process.cannyedge_auto(im_rice, 0.33)
 img4b, lines = ims.Analyze.hough_lines(img4, threshold=2, minlinelength=50, maxlinegap=5)
-ims.View.plot_list([im_rice, img4, img4b], ['Source', "CannyEdge", 'Hough Lines'], window_title="Hough Lines",autoclose=0)
+ims.View.plot_list([im_rice, img4, img4b], ['Source', "CannyEdge", 'Hough Lines'], window_title="Hough Lines",autoclose=autoclose)
 
 image_identical = ims.Analyze.compare_image_identical(img1a, img1b)
 image_mse = ims.Analyze.compare_image_mse(img1a, img1b)

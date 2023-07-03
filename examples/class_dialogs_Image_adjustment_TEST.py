@@ -52,6 +52,7 @@ out, min, max, blur = ims.Dialogs.adjust_mask(img0)
 ims.View.plot(out)
 out, min, max, blur = ims.Dialogs.adjust_mask_with_overlay(img0)
 ims.View.plot(out)
+
 out, min, blur = ims.Dialogs.select_edges(img0)
 ims.View.plot(out)
 out = ims.Dialogs.adjust_openclose(img0)
