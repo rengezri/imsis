@@ -163,18 +163,37 @@ class Misc(object):
         :Returns: list
         """
 
-        data = []
-        with open(filename) as f:
-            first_row = True
-            for line in f:
-                if first_row:
-                    first_row = False
-                    continue
-                columns = line.strip().split(",")
-                data.append([float(val) for val in columns])
+        if os.path.exists(filename):
+
+            data = []
+            with open(filename) as f:
+                first_row = True
+                for line in f:
+                    if first_row:
+                        first_row = False
+                        continue
+                    columns = line.strip().split(",")
+                    converted_values = []
+                    for val in columns:
+                        converted_val = None
+                        if val.lower() == "true":
+                            converted_val = True
+                        elif val.lower() == "false":
+                            converted_val = False
+                        else:
+                            try:
+                                converted_val = int(val)
+                            except ValueError:
+                                try:
+                                    converted_val = float(val)
+                                except ValueError:
+                                    converted_val = val
+                        converted_values.append(converted_val)
+                    data.append(converted_values)
+        else:
+            print("Warning: multicolumn list file does not exist.")
+            data=None
         return data
-
-
 
     @staticmethod
     def obj2dict(obj, verbose=False):

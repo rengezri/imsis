@@ -9,136 +9,114 @@ This module contains methods that are used for graphical user interaction.
 """
 
 import cv2 as cv
-
 import sys
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore
 import imsis as ims
 import numpy as np
 import os
 from functools import partial
-import copy
 import collections
 
-print("PyQt", QtCore.PYQT_VERSION_STR)
 
+class Window(QtWidgets.QDialog):
+    closed = QtCore.Signal(str)
 
-class Window(QtWidgets.QWidget):
     def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
+        self.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
+
+    def closeEvent(self, event):
+        self.closed.emit(self.windowTitle())
+        super().closeEvent(event)
 
     def dialog_ok_cancel(self, title, text):
         msgBox = QtWidgets.QMessageBox(self)
-        msgBox.setIcon(QtWidgets.QMessageBox.Question)
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Question)
         msgBox.setText(text)
         msgBox.setWindowTitle(title)
-        msgBox.addButton(QtWidgets.QMessageBox.Ok)
-        msgBox.addButton(QtWidgets.QMessageBox.Cancel)
+        msgBox.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
+        msgBox.addButton(QtWidgets.QMessageBox.StandardButton.Cancel)
 
-        msgBox.setDefaultButton(QtWidgets.QMessageBox.Cancel)
-        ret = msgBox.exec_()
+        msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Cancel)
+        ret = msgBox.exec()
         result = "Cancel"
-        if ret == QtWidgets.QMessageBox.Ok:
+        if ret == QtWidgets.QMessageBox.StandardButton.Ok:
             result = "Ok"
         return result
 
     def dialog_message(self, text):
         msgBox = QtWidgets.QMessageBox(self)
-        msgBox.setIcon(QtWidgets.QMessageBox.Information)
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
         msgBox.setText(text)
         msgBox.setWindowTitle('Message')
-        msgBox.addButton(QtWidgets.QMessageBox.Ok)
-        ret = msgBox.exec_()
+        msgBox.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
+        ret = msgBox.exec()
 
     def dialog_error(self, text):
         msgBox = QtWidgets.QMessageBox(self)
-        msgBox.setIcon(QtWidgets.QMessageBox.Critical)
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         msgBox.setText(text)
         msgBox.setWindowTitle('Error')
-        msgBox.addButton(QtWidgets.QMessageBox.Ok)
-        ret = msgBox.exec_()
+        msgBox.addButton(QtWidgets.QMessageBox.StandardButton.Ok)
+        ret = msgBox.exec()
 
     def dialog_input_text(self, title, text, inputval):
         msgBox = QtWidgets.QInputDialog(self)
         ret, ok = msgBox.getText(self, title, text, text=inputval)
         return ret, ok
 
-    def dialog_textbox(self, title, text):
+    def dialog_textbox(self, text, windowtext):
         msg = QtWidgets.QPlainTextEdit(self)
+        msg.setWindowTitle(windowtext)
         msg.insertPlainText(text)
         msg.move(10, 10)
         msg.resize(512, 512)
+        self.show()
 
-    def dialog_textbox_html(self, title, text):
+    def dialog_textbox_html(self, text, windowtext):
         msg = QtWidgets.QTextEdit(self)
+        msg.setWindowTitle(windowtext)
         msg.insertHtml(text)
         msg.move(10, 10)
         msg.resize(512, 512)
+        self.show()
 
-    def dialog_propertygrid(self, properties, text, info=""):
 
-        def onCheckBoxStateChanged():
-            ch = self.sender()
-            ix = table.indexAt(ch.pos())
-            print(ix.row(), ix.column(), ch.isChecked())
-            checkboxval = ch.isChecked()
-            checkbox = QtWidgets.QCheckBox()
-            # table.setItem(ix.row(),1,checkbox.setChecked(checkboxval))
-            row = ix.row()
-            properties[row][1] = str(checkboxval)
+class PropertyGridWidget(QtWidgets.QDialog):
+    _instances = set()  # Class level set to hold references to window instances
 
-            # table.setItem[ix.row(),1,"True"]
-            # table.setCellWidget(ix.row(), 1, setchecked(checkboxval))
+    def __init__(self,
+            properties,
+            text,
+            info):
+        QtWidgets.QDialog.__init__(self)
+        self._instances.add(self)  # Add the instance to the set
 
-        def onComboIndexChanged(value):
-            row = table.currentRow()
-            print(row)
-            dct = eval(properties[row][1])
-            actkey = list(dct.keys())[value]
-
-            for key, val in dct.items():
-                dct[key] = False
-                if key == actkey:
-                    dct[key] = True
-
-            properties[row][1] = str(dct)
-
-        def onButtonClicked():
-            allRows = table.rowCount()
-            print("")
-            print("start")
-            for row in range(0, allRows):
-                try:
-                    twi0 = table.item(row, 0).text()
-                    twi1 = table.item(row, 1).text()
-                    properties[row][0] = twi0
-                    properties[row][1] = twi1
-                except:
-                    pass  # skip bool
-
-            print("end")
-            print("")
-            self.close()
+        self.properties = properties
+        self.text = text
+        self.info = info
+        self.table = []
 
         # Grid Layout
         grid = QtWidgets.QGridLayout()
 
         self.setLayout(grid)
-        self.setWindowTitle(text)
+        self.setWindowTitle(self.text)
         newfont = QtGui.QFont("Sans Serif", 10)
 
         # Data
-        data = properties
+        data = self.properties
 
         # Create Empty 5x5 Table
-        table = QtWidgets.QTableWidget(self)
+        self.table = QtWidgets.QTableWidget(self)
 
-        table.setSizeAdjustPolicy(
-            QtWidgets.QAbstractScrollArea.AdjustToContents)
+        # QT6 changes
+        self.table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
 
-        table.setRowCount(len(properties))
-        table.setColumnCount(2)
-        table.horizontalHeader().setVisible(False)
-        table.verticalHeader().setVisible(False)
+        self.table.setRowCount(len(self.properties))
+        self.table.setColumnCount(2)
+        self.table.horizontalHeader().setVisible(False)
+        self.table.verticalHeader().setVisible(False)
 
         # Enter data onto Table
         horHeaders = []
@@ -147,8 +125,8 @@ class Window(QtWidgets.QWidget):
 
         self.setFont(newfont)
         for item in data:
-            table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
-            table.item(i, 0).setFlags(QtCore.Qt.ItemIsEditable)
+            self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
+            self.table.item(i, 0).setFlags(QtCore.Qt.ItemFlag.ItemIsEditable)
 
             if (item[1] == 'True' or item[1] == 'False'):
                 checkbox = QtWidgets.QCheckBox()
@@ -157,10 +135,10 @@ class Window(QtWidgets.QWidget):
 
                 else:
                     checkbox.setChecked(False)
-                table.setCellWidget(i, 1, checkbox)
+                self.table.setCellWidget(i, 1, checkbox)
 
-                # checkbox.isChecked()
-                checkbox.clicked.connect(onCheckBoxStateChanged)
+                checkbox.isChecked()
+                checkbox.clicked.connect(self.onCheckBoxStateChanged)
             else:
                 if (item[1][0] == '{' and item[1][-1] == '}'):
                     combo = QtWidgets.QComboBox()
@@ -187,26 +165,26 @@ class Window(QtWidgets.QWidget):
 
                     for t in combo_box_options:
                         combo.addItem(t)
-                    table.setCellWidget(i, 1, combo)
+                    self.table.setCellWidget(i, 1, combo)
                     combo.setCurrentIndex(highlighted_index)
 
-                    combo.currentIndexChanged.connect(onComboIndexChanged)
+                    combo.currentIndexChanged.connect(self.onComboIndexChanged)
                     # combo.currentIndexChanged.connect(onCurrentIndexChanged)
 
                 else:
-                    table.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
+                    self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
             i = i + 1
 
         # print(highlighted_index)
 
         # Add Header
-        table.setHorizontalHeaderLabels(horHeaders)
+        self.table.setHorizontalHeaderLabels(horHeaders)
 
         # Adjust size of Table, first column adjusted to text, 2nd column adjusted to max 400
-        table.resizeColumnsToContents()
-        table.resizeRowsToContents()
-        w0 = table.columnWidth(0)
-        w1 = table.columnWidth(1)
+        self.table.resizeColumnsToContents()
+        self.table.resizeRowsToContents()
+        w0 = self.table.columnWidth(0)
+        w1 = self.table.columnWidth(1)
         w0 = int(w0 * 1.1)
         w1 = int(w1 * 1.2)
         # print(w0,w1)
@@ -214,21 +192,21 @@ class Window(QtWidgets.QWidget):
             w0 = 400
         if w1 > 400:
             w1 = 400
-        table.setColumnWidth(0, w0)
-        table.setColumnWidth(1, w1)
+        self.table.setColumnWidth(0, w0)
+        self.table.setColumnWidth(1, w1)
 
         # Add Table to Grid
-        grid.addWidget(table, 0, 0)
+        grid.addWidget(self.table, 0, 0)
 
         lines = len(data)
         if (lines > 25):
             lines = 25
         newheight = 100 + lines * 28
 
-        Qinfo = QtWidgets.QLabel(info)
+        Qinfo = QtWidgets.QLabel(self.info)
 
         okButton = QtWidgets.QPushButton("OK")
-        if len(info) != 0:
+        if len(self.info) != 0:
             grid.addWidget(Qinfo)
         grid.addWidget(okButton)
         # self.setGeometry(200, 200, 600, newheight)
@@ -236,21 +214,201 @@ class Window(QtWidgets.QWidget):
         # table.setSizeAdjustPolicy(
         #    QtWidgets.QAbstractScrollArea.AdjustToContents)
 
-        table.setSizeAdjustPolicy(
-            QtWidgets.QAbstractScrollArea.AdjustToContentsOnFirstShow)
+        self.table.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContentsOnFirstShow)
 
+        # self.raise_()
+        okButton.clicked.connect(self.onButtonClicked)
         self.show()
-        self.raise_()
 
-        okButton.clicked.connect(onButtonClicked)
+    def onCheckBoxStateChanged(self):
+        ch = self.sender()
+        ix = self.table.indexAt(ch.pos())
+        print(ix.row(), ix.column(), ch.isChecked())
+        checkboxval = ch.isChecked()
+        checkbox = QtWidgets.QCheckBox()
+        # table.setItem(ix.row(),1,checkbox.setChecked(checkboxval))
+        row = ix.row()
+        self.properties[row][1] = str(checkboxval)
 
-        return properties
+        self.table.viewport().update()  # Force the table to redraw its content
+
+        # table.setItem[ix.row(),1,"True"]
+        # table.setCellWidget(ix.row(), 1, setchecked(checkboxval))
+
+    def onComboIndexChanged(self, value):
+        row = self.table.currentRow()
+        print(row)
+        dct = eval(self.properties[row][1])
+        actkey = list(dct.keys())[value]
+
+        for key, val in dct.items():
+            dct[key] = False
+            if key == actkey:
+                dct[key] = True
+
+        self.properties[row][1] = str(dct)
+
+    def onButtonClicked(self):
+        allRows = self.table.rowCount()
+        print("")
+        print("start")
+        for row in range(0, allRows):
+            try:
+                twi0 = self.table.item(row, 0).text()
+                twi1 = self.table.item(row, 1).text()
+                self.properties[row][0] = twi0
+                self.properties[row][1] = twi1
+            except:
+                pass  # skip bool
+
+        print("end")
+        print("")
+        self.choices = self.properties
+        self.close()
 
 
-class MultiButtonWidget(QtWidgets.QWidget):
+'''
+class PropertyGridWidget(QtWidgets.QWidget):
+    def __init__(self, properties, text, info):
+        super().__init__()
+        self.properties = properties
+        self.setWindowTitle(text)
+        self.table = QtWidgets.QTableWidget(self)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)  # stop qtimer assertion when closing
 
-    def __init__(self, listbuttons, name, info):
-        QtWidgets.QWidget.__init__(self)
+        # Grid Layout
+        grid = QtWidgets.QGridLayout()
+        self.setLayout(grid)
+
+        # Table setup
+        self.setup_table()
+
+        # QLabel and QPushButton
+        Qinfo = QtWidgets.QLabel(info)
+        self.okButton = QtWidgets.QPushButton("OK")  # change here
+
+        # Add Widgets to Grid
+        grid.addWidget(self.table, 0, 0)
+        if len(info) != 0:
+            grid.addWidget(Qinfo, 1, 0)
+        grid.addWidget(self.okButton, 2, 0)  # and here
+
+        self.okButton.clicked.connect(self.onButtonClicked)
+        self.show()
+
+    def setup_table(self):
+        self.table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.table.setRowCount(len(self.properties))
+        self.table.setColumnCount(2)
+        self.table.horizontalHeader().setVisible(False)
+        self.table.verticalHeader().setVisible(False)
+
+        # Enter data onto Table
+        for i, item in enumerate(self.properties):
+            self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
+            self.table.item(i, 0).setFlags(QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.populate_table_cell(i, item[1])
+
+        self.table.resizeColumnsToContents()
+        self.table.resizeRowsToContents()
+
+    def populate_table_cell(self, i, item):
+        if item in ['True', 'False']:
+            self.create_checkbox(i, item)
+        elif item[0] == '{' and item[-1] == '}':
+            self.create_combobox(i, item)
+        else:
+            self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(item))
+
+    def create_checkbox(self, i, item):
+        checkbox = QtWidgets.QCheckBox()
+        checkbox.setChecked(item == 'True')
+        self.table.setCellWidget(i, 1, checkbox)
+        checkbox.clicked.connect(self.onCheckBoxStateChanged)
+
+    def create_combobox(self, i, item):
+        combo = QtWidgets.QComboBox()
+        dct = eval(item)
+        combo.setStyleSheet("QComboBox {background-color: white;font: 12px;}")
+        for t in dct.keys():
+            combo.addItem(t)
+        self.table.setCellWidget(i, 1, combo)
+        combo.currentIndexChanged.connect(self.onComboIndexChanged)
+
+    def onCheckBoxStateChanged(self):
+        checkbox = self.sender()
+        ix = self.table.indexAt(checkbox.pos())
+        row = ix.row()
+        self.properties[row][1] = str(checkbox.isChecked())
+
+    def onComboIndexChanged(self, value):
+        row = self.table.currentRow()
+        dct = eval(self.properties[row][1])
+        actkey = list(dct.keys())[value]
+
+        for key, val in dct.items():
+            dct[key] = False
+            if key == actkey:
+                dct[key] = True
+
+        self.properties[row][1] = str(dct)
+
+    def closeEvent(self, event):
+        """Reimplementation of the close event handler."""
+        # Cleanup code here...
+        # This will be executed when the window is closing.
+        self.disconnect_signals()
+        self.delete_widgets()
+        event.accept()
+
+    def delete_widgets(self):
+        # Method to delete widget and its children
+        for widget in self.findChildren(QtWidgets.QWidget):
+            widget.deleteLater()
+
+        self.deleteLater()
+
+    def disconnect_signals(self):
+        try:
+            self.okButton.clicked.disconnect(self.onButtonClicked)
+            # add other disconnect calls for other connected signals
+            # NOTE: Here, you will also need to disconnect signals for checkbox and combobox.
+            #       Ensure each widget that uses signals has an instance variable (like self.okButton) to allow for proper disconnection.
+        except TypeError:
+            # disconnect raises a TypeError if the signal was not connected
+            pass
+
+    def onButtonClicked(self):
+        allRows = self.table.rowCount()
+        print("\nstart")
+        for row in range(0, allRows):
+            twi0_item = self.table.item(row, 0)
+            twi1_item = self.table.item(row, 1)
+            if twi0_item is not None and twi1_item is not None:
+                twi0 = twi0_item.text()
+                twi1 = twi1_item.text()
+                self.properties[row][0] = twi0
+                self.properties[row][1] = twi1
+        print("end\n")
+        self.choices = self.properties
+
+        # Close the widget properly
+        self.close()
+'''
+
+'''
+--------------
+'''
+
+
+class MultiButtonWidget(QtWidgets.QDialog):
+    _instances = set()
+
+    def __init__(self, listbuttons,name,info):
+        QtWidgets.QDialog.__init__(self)
+        self._instances.add(self)
+
         newfont = QtGui.QFont("Sans Serif", 10)
         layout = QtWidgets.QVBoxLayout(self)
         self.buttonpressed = 0
@@ -266,8 +424,6 @@ class MultiButtonWidget(QtWidgets.QWidget):
             layout.addWidget(self.buttons[-1])
         self.setWindowTitle(self.name)
 
-        # Qinfo = QtWidgets.QLineEdit(info)
-        # Qinfo.setReadOnly(True)
         Qinfo = QtWidgets.QLabel(info)
         if len(info) != 0:
             layout.addWidget(Qinfo)
@@ -278,40 +434,27 @@ class MultiButtonWidget(QtWidgets.QWidget):
         # sys.exit(0) #sysexit is slow, while close is fast
         self.close()
 
-
 class CheckListWidget(QtWidgets.QDialog):
-
-    def __init__(
-            self,
-            name,
-            datalist,
-            info
-    ):
-        QtWidgets.QListWidget.__init__(self)
+    def __init__(self, name, datalist, info):
+        super().__init__()
 
         self.name = name
-
         self.model = QtGui.QStandardItemModel()
         self.listView = QtWidgets.QListView()
-
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)  # stop qtimer assertion when closing
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
 
         for string, datatype in datalist:
-
             item = QtGui.QStandardItem(string)
             item.setCheckable(True)
             check = datatype
-            # print(string,check)
             if (check == True):
-                item.setCheckState(2)
+                item.setCheckState(QtCore.Qt.CheckState.Checked)
             else:
-                item.setCheckState(0)
+                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
             self.model.appendRow(item)
 
         self.listView.setModel(self.model)
-
         Qinfo = QtWidgets.QLabel(info)
-
         self.okButton = QtWidgets.QPushButton('OK')
         self.abortButton = QtWidgets.QPushButton('Abort')
         self.selectButton = QtWidgets.QPushButton('Select All')
@@ -319,11 +462,11 @@ class CheckListWidget(QtWidgets.QDialog):
 
         newfont = QtGui.QFont("Sans Serif", 10)
         self.setFont(newfont)
+
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
         hbox.addWidget(self.okButton)
         hbox.addWidget(self.abortButton)
-
         hbox.addWidget(self.selectButton)
         hbox.addWidget(self.unselectButton)
 
@@ -341,15 +484,9 @@ class CheckListWidget(QtWidgets.QDialog):
         self.unselectButton.clicked.connect(self.unselect)
 
     def onAccepted(self):
-        '''
-        self.choices = [self.model.item(i).text() for i in
-                        range(self.model.rowCount())
-                        if self.model.item(i).checkState()
-                        == QtCore.Qt.Checked]
-        '''
         itemlist = []
         for i in range(self.model.rowCount()):
-            if self.model.item(i).checkState() == 2:
+            if self.model.item(i).checkState() == QtCore.Qt.CheckState.Checked:
                 itemlist.append((self.model.item(i).text(), True))
             else:
                 itemlist.append((self.model.item(i).text(), False))
@@ -370,31 +507,22 @@ class CheckListWidget(QtWidgets.QDialog):
             item = self.model.item(i)
             item.setCheckState(QtCore.Qt.Unchecked)
 
-
 class RadioButtonListWidget(QtWidgets.QDialog):
+    _instances = set()
 
-    def __init__(
-            self,
-            name,
-            datalist,
-            info
-    ):
-        QtWidgets.QListWidget.__init__(self)
+    def __init__(self, name, datalist, info):
+        QtWidgets.QDialog.__init__(self)
+        self._instances.add(self)
 
         self.name = name
-
-        # self.model = QtGui.QSta.QStandardItemModel()
         self.vbox = QtWidgets.QVBoxLayout()
-
-        # self.listView = QtWidgets.QListView()
         self.button_group = QtWidgets.QButtonGroup()
 
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)  # stop qtimer assertion when closing
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
+
         vbox = QtWidgets.QVBoxLayout(self)
 
         i = 0
-
-        # check state of all buttons, prevent that all buttons are disabled, if multiple buttons are selected last one is enabled.
         anybuttonselected = False
         for string, datatype in datalist:
             if datatype == True:
@@ -432,13 +560,6 @@ class RadioButtonListWidget(QtWidgets.QDialog):
         self.abortButton.clicked.connect(self.reject)
 
     def onAccepted(self):
-        '''
-        self.choices = [self.model.item(i).text() for i in
-                        range(self.model.rowCount())
-                        if self.model.item(i).checkState()
-                        == QtCore.Qt.Checked]
-        '''
-
         self.choices = self.button_group.checkedId()
         self.accept()
 
@@ -448,14 +569,14 @@ class RadioButtonListWidget(QtWidgets.QDialog):
 
 
 class ComboBoxWidget(QtWidgets.QDialog):
+    _instances = set()  # Class level set to hold references to window instances
 
-    def __init__(
-            self,
+    def __init__(self,
             name,
             datalist,
-            info
-    ):
-        QtWidgets.QListWidget.__init__(self)
+            info):
+        QtWidgets.QDialog.__init__(self)
+        self._instances.add(self)  # Add the instance to the set
 
         self.name = name
 
@@ -465,7 +586,7 @@ class ComboBoxWidget(QtWidgets.QDialog):
         # self.listView = QtWidgets.QListView()
         self.button_group = QtWidgets.QComboBox()
 
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)  # stop qtimer assertion when closing
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)  # stop qtimer assertion when closing
         vbox = QtWidgets.QVBoxLayout(self)
 
         i = 0
@@ -524,18 +645,22 @@ class ComboBoxWidget(QtWidgets.QDialog):
         self.reject()
 
 
+'''
 if __name__ == "__main__":
     app = QApplication([])
     w = MainWidget()
     w.show()
     app.exec_()
+'''
 
 
 class ImageListViewWidget(QtWidgets.QListWidget):
-    dropped = QtCore.pyqtSignal(list)
+    _instances = set()  # Class level set to hold references to window instances
+    dropped = QtCore.Signal(list)
 
-    def __init__(self, type, parent=None):
-        super(ImageListViewWidget, self).__init__(parent)
+    def __init__(self, parent=None):
+        QtWidgets.QListWidget.__init__(self, parent)
+        self._instances.add(self)  # Add the instance to the set
         self.setAcceptDrops(True)
         self.setIconSize(QtCore.QSize(72, 72))
 
@@ -566,17 +691,17 @@ class ImageListViewWidget(QtWidgets.QListWidget):
             event.ignore()
 
 
-class ImageListViewForm(QtWidgets.QMainWindow):
+class ImageListViewForm(QtWidgets.QDialog):
+
 
     def __init__(self, parent=None, title="Drag and drop image dialog"):
         super(ImageListViewForm, self).__init__(parent)
         self.setWindowTitle(title)
         self.view = ImageListViewWidget(self)
-
         self.view.dropped.connect(self.pictureDropped)
-
-        # self.connect(self.view, QtCore.SIGNAL("dropped"), self.pictureDropped)
-        self.setCentralWidget(self.view)
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self.view)
+        self.setLayout(self.layout)
         self.url_list = []
 
     def pictureDropped(self, l):
@@ -593,6 +718,9 @@ class ImageListViewForm(QtWidgets.QMainWindow):
 
 
 class Dialogs(object):
+    def __init__(self):
+        print("Dialog init")
+        self.window = None  # added
 
     # DIALOGS QT
     @staticmethod
@@ -610,7 +738,7 @@ class Dialogs(object):
 
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         ret = window.dialog_ok_cancel(windowtext, text)
         return ret
@@ -643,22 +771,14 @@ class Dialogs(object):
 
         window = CheckListWidget(name=windowtext, datalist=datalist, info=info)
 
-        if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        if alwaysontop:
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
-        window.show()
-
-        app.exec()
-        try:
-            table = window.choices
-            print("Selection made.")
-        except:
-            # table = properties
-            table = None
-            print("Cancel")
-
-        ret = table
-        return ret
+        result = window.exec_()
+        if result == QtWidgets.QDialog.Accepted:
+            return window.choices
+        else:
+            return None
 
     def dialog_dictionary_activekey(dct):
         """Dialog combobox activekey
@@ -716,13 +836,25 @@ class Dialogs(object):
         window = ComboBoxWidget(name=windowtext, datalist=datalist, info=info)
 
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         window.show()
 
-        app.exec()
+        result = window.exec()
         try:
-            table = window.choices
+            newval = window.choices
+            itemlist = []
+            i = 0
+            for key, val in properties.items():
+                if i == newval:
+                    itemlist.append((key, True))
+                else:
+                    itemlist.append((key, False))
+                i = i + 1
+            table = collections.OrderedDict(itemlist)
+            # self.choices = collections.OrderedDict(itemlist)
+            # self.accept()
+
             print("Selection made.")
         except:
             # table = properties
@@ -761,21 +893,26 @@ class Dialogs(object):
         window = RadioButtonListWidget(name=windowtext, datalist=datalist, info=info)
 
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
-        window.show()
-
-        app.exec()
-        try:
-            table = window.choices
+        result = window.exec()
+        if result == QtWidgets.QDialog.Accepted:
+            newval = window.choices
+            itemlist = []
+            i = 0
+            for key, val in properties.items():
+                if i == newval:
+                    itemlist.append((key, True))
+                else:
+                    itemlist.append((key, False))
+                i = i + 1
+            table = collections.OrderedDict(itemlist)
             print("Selection made.")
-        except:
-            # table = properties
+        else:
             table = None
             print("Cancel")
 
-        ret = table
-        return ret
+        return table
 
     @staticmethod
     def dialog_multiplebuttons(listbuttons, windowtext="ButtonList", info="", alwaysontop=True):
@@ -800,10 +937,10 @@ class Dialogs(object):
 
         window = MultiButtonWidget(listbuttons, windowtext, info)
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         window.show()
-        app.exec_()
+        window.exec()
         ret = window.buttonpressed
         return ret
 
@@ -831,7 +968,7 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         Continue = False
         while Continue == False:
@@ -874,7 +1011,7 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         window.dialog_message(text)
 
@@ -888,15 +1025,10 @@ class Dialogs(object):
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
-        window = Window()
-        window.dialog_textbox(windowtext, text)
-        window.setWindowTitle(windowtext)
-        if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        window.show()
-        app.exec()
-        # sys.exit(app.exec_())
+        window = Window()
+        window.dialog_textbox(text, windowtext)
+        window.exec()
 
     @staticmethod
     def textbox_html(text, windowtext="Textbox", alwaysontop=True):
@@ -909,14 +1041,8 @@ class Dialogs(object):
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
-        window.dialog_textbox_html(windowtext, text)
-        window.setWindowTitle(windowtext)
-        if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-
-        window.show()
-        app.exec()
-        # sys.exit(app.exec_())
+        window.dialog_textbox_html(text, windowtext)
+        window.exec()
 
     @staticmethod
     def error(text, alwaysontop=True):
@@ -930,10 +1056,50 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         window.dialog_error(text)
 
+    @staticmethod
+    def dialog_propertygrid(properties, windowtext='Properties', verbose=True, info="", alwaysontop=True):
+        app = QtCore.QCoreApplication.instance()
+        if app is None:
+            app = QtWidgets.QApplication(sys.argv)
+
+        data = [[key, str(val) if val != "" else " "] for key, val in properties.items()]
+        datatypes = [type(val) for val in properties.values()]
+
+        window = PropertyGridWidget(data, windowtext, info)
+        window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint if alwaysontop else window.windowFlags())
+        window.show()
+
+        result = window.exec()
+
+        propgridwidget = window.properties
+
+        properties = {}
+        st1 = ''
+
+        for row, (twi0, twi1) in enumerate(propgridwidget):
+            st1 = f'{st1} {twi0} {twi1}'
+
+            if datatypes[row] is bool:
+                properties[twi0] = twi1 == 'True'
+            elif datatypes[row] is int:
+                properties[twi0] = int(twi1) if twi1.isdigit() else float(twi1)
+            elif datatypes[row] is float:
+                properties[twi0] = float(twi1)
+            elif datatypes[row] is dict:
+                properties[twi0] = eval(twi1)
+            else:
+                properties[twi0] = twi1  # not float or int therefore making it string
+
+        if verbose:
+            print('types: ', st1)
+            print('out: ', properties)
+        return properties
+
+    '''
     @staticmethod
     def dialog_propertygrid(properties, windowtext='Properties', verbose=True, info="", alwaysontop=True):
         """Simple property grid
@@ -953,9 +1119,8 @@ class Dialogs(object):
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
-        window = Window()
-        if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+
 
         data = []
         datatypes = []
@@ -969,18 +1134,26 @@ class Dialogs(object):
             data.append([key, str(val)])
             datatypes.append(type(val))
 
-        table = window.dialog_propertygrid(data, windowtext, info)
+
+        window = PropertyGridWidget(data, windowtext, info)
+
+        #if alwaysontop == True:
+        #    window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
+
+        #table = window.dialog_propertygrid(data, windowtext, info)
 
         app.exec()
 
+
         # print('out', table)
 
+        propgridwidget = window.properties
         properties = {}
         st1 = ''
-        for row in range(0, len(table)):
+        for row in range(0, len(propgridwidget)):
             # try:
-            twi0 = table[row][0]
-            twi1 = table[row][1]
+            twi0 = propgridwidget[row][0]
+            twi1 = propgridwidget[row][1]
             st1 = st1 + ' ' + str(twi0) + ' ' + str(twi1)
 
             if (datatypes[row] is bool):
@@ -1009,7 +1182,9 @@ class Dialogs(object):
         if (verbose == True):
             print('types: ', st1)
             print('out: ', properties)
+
         return properties
+    '''
 
     @staticmethod
     def openfile_dialog(path='/', windowtext='Open File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)",
@@ -1026,7 +1201,7 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         filename, _filter = QtWidgets.QFileDialog.getOpenFileName(window, windowtext, path, filter)
         return filename
@@ -1046,7 +1221,7 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         filename, _filter = QtWidgets.QFileDialog.getSaveFileName(window, windowtext, path, filter)
         return filename
@@ -1065,7 +1240,7 @@ class Dialogs(object):
             app = QtWidgets.QApplication(sys.argv)
         window = Window()
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
         folder = QtWidgets.QFileDialog.getExistingDirectory(window, windowtext, path)
         return folder
@@ -1529,7 +1704,7 @@ class Dialogs(object):
             img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
-            thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
+            thresh1 = ims.Image.Process.merge2channels(thresh0, img)
             if hidemask == True:
                 thresh1 = img
             if text:
@@ -1620,9 +1795,9 @@ class Dialogs(object):
             # img = cv.resize(img, None, fx=zoomfactor, fy=zoomfactor)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
-            # thresh1 = ims.Image.Process.Falsecolor.falsecolor_merge2channels(thresh0, img)
+            # thresh1 = ims.Image.Process.Colormap.falsecolor_merge2channels(thresh0, img)
             fn = 'overlay.png'
-            print(min, max, blur, minArea, maxArea, dt)
+            # print(min, max, blur, minArea, maxArea, dt)
             try:
                 overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
                                                                                                             thresh0,
@@ -1638,7 +1813,7 @@ class Dialogs(object):
             return overlay2
 
         def subfunction_final(img, min, max, blur, minArea, maxArea, dt):
-            print("final ", min, max, blur, minArea, maxArea, dt)
+            # print("final ", min, max, blur, minArea, maxArea, dt)
             imout = cv.GaussianBlur(img, (blur, blur), 0)
             thresh0 = cv.inRange(imout, min, max)
             overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featureproperties(img,
@@ -1711,9 +1886,10 @@ class Dialogs(object):
                     hidemask = True
 
         cv.destroyAllWindows()
-        print("MaskWithBackground: thresholdedimage, Min={},Max={},Blur={}".format(min, max, blur))
-        print("final ", min, max, blur, minArea, maxArea, dt, minArealast, maxArealast, dtlast)
         overlay = subfunction_final(orig, min, max, blur, minArea, maxArea, dt)
+        print(
+            "adjust_contours_after_masking: min {}, max {}, blur {}, minarea {}, maxarea {}, dt/100 {}, minarealast{}, maxarealast {}, dtlast {}".format(
+                min, max, blur, minArea, maxArea, dt / 100, minArealast, maxArealast, dtlast))
         return overlay, minArea, maxArea, dt / 100
 
     @staticmethod
@@ -1729,8 +1905,6 @@ class Dialogs(object):
             thresh1, min,max,blur = em.Dialogs.adjust_mask(img,'Select Image mask')
             print(min,max,blur)
             em.View.plot(thresh1,'')
-
-
         """
 
         def nothing(x):
@@ -1747,7 +1921,7 @@ class Dialogs(object):
         cv.createTrackbar("Blur", windowtext, 1, 50, nothing)
 
         while (1):
-            min = cv.getTrackbarPos("Min", windowtext)
+            min = cv.getTrackbarPos("NonMaxSupp", windowtext)
             blur = cv.getTrackbarPos("Blur", windowtext)
             if (blur % 2 == 0):
                 blur = blur + 1
@@ -2299,17 +2473,17 @@ class Dialogs(object):
 
         :Returns: list of urls
         """
-        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
+
+
         app = QtCore.QCoreApplication.instance()
         if app is None:
             app = QtWidgets.QApplication(sys.argv)
         window = ImageListViewForm()
 
         if alwaysontop == True:
-            window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+            window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
 
-        window.show()
-        app.exec()
+        window.exec()
         url_list = window.url_list
         return url_list
 

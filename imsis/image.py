@@ -21,6 +21,7 @@ from matplotlib.colors import hsv_to_rgb
 from datetime import datetime
 from scipy import ndimage
 
+import imsis
 
 
 class Image(object):
@@ -39,14 +40,14 @@ class Image(object):
         if (os.path.isfile(filename)):
             img = cv.imread(filename, -1)
             if (verbose == True):
-                print("load file ", filename, img.shape, img.dtype)
+                print("Load file:", filename, img.shape, img.dtype)
         else:
-            print('Error, file does not exist. ', filename)
+            print('Error, image file does not exist. ', filename)
             sys.exit()
         try:
             q = img.shape
         except:
-            print('Error, File could not be read. ', filename)
+            print('Error, image file could not be read. ', filename)
             sys.exit()
         return img
 
@@ -263,6 +264,33 @@ class Image(object):
         out = cv.addWeighted(a, alpha, b, beta, gamma)
         return out
 
+    def add2(img0, img1, alpha=0.5):
+        """add 2 images weighted (default alpha=0.5) even if size is slightly different
+        :Parameters: image1, image2, alpha
+        :Returns: image
+        """
+        bg_img=img0
+        fg_img=img0
+
+        w, h, _ = bg_img.shape
+        w1, h1, _ = fg_img.shape
+        if w1 > w:
+            w = w1
+        if h1 > h:
+            h = h1
+        bg_img1 = np.zeros((w, h, 3), np.uint8)
+        fg_img1 = np.zeros((w, h, 3), np.uint8)
+        bg_img1[0: 0 + bg_img.shape[0], 0: 0 + bg_img.shape[1]] = bg_img
+        fg_img1[0: 0 + fg_img.shape[0], 0: 0 + fg_img.shape[1]] = fg_img
+        a=bg_img1
+        b=fg_img1
+        beta = 1 - alpha
+        gamma = 0
+        out = cv.addWeighted(a, alpha, b, beta, gamma)
+        return out
+
+
+
     @staticmethod
     def add_overlay(bg_img, fg_img):
         """add 2 images, foregrond image with black as mask overlays a background image with black as mask
@@ -270,17 +298,16 @@ class Image(object):
         :Returns: image
         """
 
-        w,h,_=bg_img.shape
-        w1,h1,_ = fg_img.shape
-        if w1>w :
-            w=w1
-        if h1>h:
-            h=h1
-        bg_img1 = np.zeros((w, h,3), np.uint8)
-        fg_img1= np.zeros((w, h,3), np.uint8)
+        w, h, _ = bg_img.shape
+        w1, h1, _ = fg_img.shape
+        if w1 > w:
+            w = w1
+        if h1 > h:
+            h = h1
+        bg_img1 = np.zeros((w, h, 3), np.uint8)
+        fg_img1 = np.zeros((w, h, 3), np.uint8)
         bg_img1[0: 0 + bg_img.shape[0], 0: 0 + bg_img.shape[1]] = bg_img
         fg_img1[0: 0 + fg_img.shape[0], 0: 0 + fg_img.shape[1]] = fg_img
-
 
         # create a mask of the foreground image
         fg_mask = cv.cvtColor(fg_img1, cv.COLOR_BGR2GRAY)
@@ -482,8 +509,6 @@ class Image(object):
 
             gradSup = nonmaxsuppression(im, grad)
             return gradSup, thetaQ
-
-
 
         @staticmethod
         def nonlocalmeans(img, h=10, templatewindowsize=7, searchwindowsize=21):
@@ -969,7 +994,7 @@ class Image(object):
             """
             # data = np.float32(img) #convert to float to add poisson noise
 
-            data = img.astype(np.float)
+            data = img.astype(float)
 
             noise = prob
             # peak = 256.0-noise*(256-32)
@@ -996,153 +1021,48 @@ class Image(object):
             segmented_image = segmented_data.reshape((image.shape))
             return segmented_image
 
-        class Falsecolor:
+        @staticmethod
+        def merge2channels(img0, img1):
+            """Merge 2 images using 2 colors
 
-            @staticmethod
-            def falsecolor_jet(img):
-                """False color jet
+            :Parameters: image1, image2
+            :Returns: image
+            """
+            img0 = Image.Convert.toGray(img0)
+            img1 = Image.Convert.toGray(img1)
 
-                :Parameters: image
-                :Returns: image
-                """
-                im_color = cv.applyColorMap(img, cv.COLORMAP_JET)
-                return im_color
+            img0 = Image.Adjust.histostretch_clahe(img0)
+            img1 = Image.Adjust.histostretch_clahe(img1)
 
-            @staticmethod
-            def falsecolor_rainbow(img):
-                """False color rainbow
+            img0 = cv.cvtColor(img0, cv.COLOR_GRAY2BGR)
+            img1 = cv.cvtColor(img1, cv.COLOR_GRAY2BGR)
 
-                :Parameters: image
-                :Returns: image
-                """
-                im_color = cv.applyColorMap(img, cv.COLORMAP_RAINBOW)
-                return im_color
+            r0, g0, b0 = cv.split(img0)
+            r1, g1, b1 = cv.split(img1)
+            img3 = cv.merge([b1, g1, r0])
+            return img3
 
-            @staticmethod
-            def falsecolor_hot(img):
-                """False color rainbow
+        @staticmethod
+        def merge3channels(img0, img1, img2):
+            """Merge 3 images using 3 colors
 
-                :Parameters: image
-                :Returns: image
-                """
-                im_color = cv.applyColorMap(img, cv.COLORMAP_HOT)
-                return im_color
+            :Parameters: image1, image2, image3
+            :Returns: image
+            """
+            img0 = Image.Adjust.histostretch_clahe(img0)
+            img1 = Image.Adjust.histostretch_clahe(img1)
+            img2 = Image.Adjust.histostretch_clahe(img2)
 
-            @staticmethod
-            def falsecolor_transfer(source, target):
-                """ convert RGB to LAB color space
+            img0 = cv.cvtColor(img0, cv.COLOR_GRAY2BGR)
+            img1 = cv.cvtColor(img1, cv.COLOR_GRAY2BGR)
+            img2 = cv.cvtColor(img2, cv.COLOR_GRAY2BGR)
 
-                :Parameters: source_image, target_image
-                :Returns: image
-                """
-                # convert the images from the RGB to L*ab* color space, being
-                # sure to utilizing the floating point data type (note: OpenCV
-                # expects floats to be 32-bit, so use that instead of 64-bit)
-                source = cv.cvtColor(source, cv.COLOR_GRAY2BGR)
-                target = cv.cvtColor(target, cv.COLOR_GRAY2BGR)
+            r0, g0, b0 = cv.split(img0)
+            r1, g1, b1 = cv.split(img1)
+            r2, g2, b2 = cv.split(img2)
+            img3 = cv.merge([b2, g1, r0])
+            return img3
 
-                source = cv.cvtColor(source, cv.COLOR_BGR2LAB).astype("float32")
-                target = cv.cvtColor(target, cv.COLOR_BGR2LAB).astype("float32")
-
-                # compute color statistics for the source and target images
-                (lMeanSrc, lStdSrc, aMeanSrc, aStdSrc, bMeanSrc, bStdSrc) = _image_stats(source)
-                (lMeanTar, lStdTar, aMeanTar, aStdTar, bMeanTar, bStdTar) = _image_stats(target)
-
-                # subtract the means from the target image
-                (l, a, b) = cv.split(target)
-                l -= lMeanTar
-                a -= aMeanTar
-                b -= bMeanTar
-
-                # scale by the standard deviations
-                l = (lStdTar / lStdSrc) * l
-                a = (aStdTar / aStdSrc) * a
-                b = (bStdTar / bStdSrc) * b
-
-                # add in the source mean
-                l += lMeanSrc
-                a += aMeanSrc
-                b += bMeanSrc
-
-                # clip the pixel intensities to [0, 255] if they fall outside
-                # this range
-                l = np.clip(l, 0, 255)
-                a = np.clip(a, 0, 255)
-                b = np.clip(b, 0, 255)
-
-                # merge the channels together and convert back to the RGB color
-                # space, being sure to utilize the 8-bit unsigned integer data
-                # type
-                transfer = cv.merge([l, a, b])
-                transfer = cv.cvtColor(transfer.astype("uint8"), cv.COLOR_LAB2BGR)
-
-                # return the color transferred image
-                return transfer
-
-            @staticmethod
-            def falsecolor_merge2channels(img0, img1):
-                """Merge 2 images using 2 colors
-
-                :Parameters: image1, image2
-                :Returns: image
-                """
-                img0 = Image.Convert.toGray(img0)
-                img1 = Image.Convert.toGray(img1)
-
-                img0 = Image.Adjust.histostretch_clahe(img0)
-                img1 = Image.Adjust.histostretch_clahe(img1)
-
-                img0 = cv.cvtColor(img0, cv.COLOR_GRAY2BGR)
-                img1 = cv.cvtColor(img1, cv.COLOR_GRAY2BGR)
-
-                r0, g0, b0 = cv.split(img0)
-                r1, g1, b1 = cv.split(img1)
-                img3 = cv.merge([b1, g1, r0])
-                return img3
-
-            @staticmethod
-            def falsecolor_merge3channels(img0, img1, img2):
-                """Merge 3 images using 3 colors
-
-                :Parameters: image1, image2, image3
-                :Returns: image
-                """
-                img0 = Image.Adjust.histostretch_clahe(img0)
-                img1 = Image.Adjust.histostretch_clahe(img1)
-                img2 = Image.Adjust.histostretch_clahe(img2)
-
-                img0 = cv.cvtColor(img0, cv.COLOR_GRAY2BGR)
-                img1 = cv.cvtColor(img1, cv.COLOR_GRAY2BGR)
-                img2 = cv.cvtColor(img2, cv.COLOR_GRAY2BGR)
-
-                r0, g0, b0 = cv.split(img0)
-                r1, g1, b1 = cv.split(img1)
-                r2, g2, b2 = cv.split(img2)
-                img3 = cv.merge([b2, g1, r0])
-                return img3
-
-            @staticmethod
-            def grayscale_to_color(img, color):
-                """ colorize a grayscale image by a given color
-                :Parameters: image, color
-                :Returns: image
-                """
-
-                # Add a small value to grayscale image
-                gray_img = img.copy()
-                # gray_img += 1
-
-                # Normalize grayscale image to the range [0, 255]
-                # gray_img = cv.normalize(gray_img, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
-
-                # Create color image
-                color_img = np.zeros((gray_img.shape[0], gray_img.shape[1], 3), dtype=np.uint8)
-                color_img[:, :, 0] = color[0]
-                color_img[:, :, 1] = color[1]
-                color_img[:, :, 2] = color[2]
-                color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8)
-
-                return color_img
 
         @staticmethod
         def gradient_removal(img, filtersize=513, sigmaX=32):
@@ -1247,6 +1167,185 @@ class Image(object):
             # Remove the noisy regions by applying the mask on the image
             result = cv.bitwise_and(img, img, mask=thresh)
             return result
+
+    class Colormap:
+
+        @staticmethod
+        def replace_color_in_colormap(image, colormap_target=cv.COLORMAP_JET, source_color=(0, 0, 0)):
+            """Replace a color in an image with one colormap by the color in a target colormap
+
+            :Parameters:
+            - image: numpy.ndarray
+                The input image in BGR format.
+            - source_color: tuple, optional
+                The RGB color value to be replaced. Default is (0, 0, 0).
+
+            :Returns:
+            - numpy.ndarray
+                The modified image.
+            """
+            target_bgr_color = \
+            cv.applyColorMap(np.array([[source_color[0]]], dtype=np.uint8), colormap_target)[0][0]
+
+            # Find pixels with the target grayscale color and replace them with the colormap value
+            mask = np.all(image == source_color[0], axis=-1)
+            image[mask] = target_bgr_color
+
+            return image
+
+
+        @staticmethod
+        def colormap_jet(img):
+            """False color jet
+
+            :Parameters: image
+            :Returns: image
+            """
+            im_color = cv.applyColorMap(img, cv.COLORMAP_JET)
+            return im_color
+
+        '''
+        @staticmethod
+        def falsecolor_rainbow(img):
+            """False color rainbow
+
+            :Parameters: image
+            :Returns: image
+            """
+            im_color = cv.applyColorMap(img, cv.COLORMAP_RAINBOW)
+            return im_color
+        '''
+
+        @staticmethod
+        def colormap_hot(img):
+            """False color rainbow
+
+            :Parameters: image
+            :Returns: image
+            """
+            im_color = cv.applyColorMap(img, cv.COLORMAP_HOT)
+            return im_color
+
+        '''
+        @staticmethod
+        def falsecolor_hsv(img):
+            """False color rainbow
+
+            :Parameters: image
+            :Returns: image
+            """
+            im_color = cv.applyColorMap(img, cv.COLORMAP_HSV)
+            return im_color
+        '''
+
+        def matplotlib_to_opencv_colormap(cmap):
+            """Convert a Matplotlib colormap to an OpenCV colormap.
+
+            :param cmap: Matplotlib colormap object
+            :return: OpenCV colormap
+            """
+            colormap = np.zeros((256, 1, 3), dtype=np.uint8)
+            for i in range(256):
+                color = np.array(cmap(i / 255.0)[:3]) * 255
+                colormap[i, 0, :] = color[::-1]  # Swap RGB to BGR
+            return colormap
+
+        def colormap_tab20(img):
+            cmap = plt.get_cmap('tab20')
+            colormap = Image.Colormap.matplotlib_to_opencv_colormap(cmap)
+
+            # Apply custom colormap through LUT
+            im_color = cv.LUT(img, colormap)
+            return im_color
+
+        def colormap_tab20b(img):
+            cmap = plt.get_cmap('tab20b')
+            colormap = Image.Colormap.matplotlib_to_opencv_colormap(cmap)
+
+            # Apply custom colormap through LUT
+            im_color = cv.LUT(img, colormap)
+            return im_color
+
+
+
+
+
+        @staticmethod
+        def grayscale_to_color(img, color):
+            """ colorize a grayscale image by a given color
+            :Parameters: image, color
+            :Returns: image
+            """
+
+            # Add a small value to grayscale image
+            gray_img = img.copy()
+            # gray_img += 1
+
+            # Normalize grayscale image to the range [0, 255]
+            # gray_img = cv.normalize(gray_img, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+
+            # Create color image
+            color_img = np.zeros((gray_img.shape[0], gray_img.shape[1], 3), dtype=np.uint8)
+            color_img[:, :, 0] = color[0]
+            color_img[:, :, 1] = color[1]
+            color_img[:, :, 2] = color[2]
+            color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8)
+
+            return color_img
+
+
+        @staticmethod
+        def RGBtoLAB(source, target):
+            """ convert RGB to LAB color space
+
+            :Parameters: source_image, target_image
+            :Returns: image
+            """
+            # convert the images from the RGB to L*ab* color space, being
+            # sure to utilizing the floating point data type (note: OpenCV
+            # expects floats to be 32-bit, so use that instead of 64-bit)
+            source = cv.cvtColor(source, cv.COLOR_GRAY2BGR)
+            target = cv.cvtColor(target, cv.COLOR_GRAY2BGR)
+
+            source = cv.cvtColor(source, cv.COLOR_BGR2LAB).astype("float32")
+            target = cv.cvtColor(target, cv.COLOR_BGR2LAB).astype("float32")
+
+            # compute color statistics for the source and target images
+            (lMeanSrc, lStdSrc, aMeanSrc, aStdSrc, bMeanSrc, bStdSrc) = _image_stats(source)
+            (lMeanTar, lStdTar, aMeanTar, aStdTar, bMeanTar, bStdTar) = _image_stats(target)
+
+            # subtract the means from the target image
+            (l, a, b) = cv.split(target)
+            l -= lMeanTar
+            a -= aMeanTar
+            b -= bMeanTar
+
+            # scale by the standard deviations
+            l = (lStdTar / lStdSrc) * l
+            a = (aStdTar / aStdSrc) * a
+            b = (bStdTar / bStdSrc) * b
+
+            # add in the source mean
+            l += lMeanSrc
+            a += aMeanSrc
+            b += bMeanSrc
+
+            # clip the pixel intensities to [0, 255] if they fall outside
+            # this range
+            l = np.clip(l, 0, 255)
+            a = np.clip(a, 0, 255)
+            b = np.clip(b, 0, 255)
+
+            # merge the channels together and convert back to the RGB color
+            # space, being sure to utilize the 8-bit unsigned integer data
+            # type
+            transfer = cv.merge([l, a, b])
+            transfer = cv.cvtColor(transfer.astype("uint8"), cv.COLOR_LAB2BGR)
+
+            # return the color transferred image
+            return transfer
+
+
 
     class Adjust:
         @staticmethod
@@ -1920,9 +2019,9 @@ class Image(object):
             if (channels != 3):
                 img1 = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
                 # print('Image converted from Grayscale to RGB')
-            if (channels ==3 and img.shape[2]==4):
+            if (channels == 3 and img.shape[2] == 4):
                 img1 = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
-                #remove alpha channel
+                # remove alpha channel
             return img1
 
         @staticmethod
@@ -1948,9 +2047,9 @@ class Image(object):
             """
             img1 = img
             channels = len(img.shape)
-            if (channels ==3 and img.shape[2]==4):
+            if (channels == 3 and img.shape[2] == 4):
                 img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
-                #remove alpha channel
+                # remove alpha channel
             if (channels > 2):
                 b, g, r = cv.split(img)  # get b,g,r
                 img1 = cv.merge([r, g, b])  # switch it to rgb (OpenCV uses BGR)
@@ -1965,9 +2064,9 @@ class Image(object):
             """
             img1 = img
             channels = len(img.shape)
-            if (channels ==3 and img.shape[2]==4):
+            if (channels == 3 and img.shape[2] == 4):
                 img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
-                #remove alpha channel
+                # remove alpha channel
             if (channels > 2):
                 r, g, b = cv.split(img)  # get b,g,r
                 img1 = cv.merge([b, g, r])  # switch it to rgb (OpenCV uses BGR)
@@ -2002,6 +2101,9 @@ class Image(object):
             """
             img = img.astype('uint8') * 255
             return img
+
+
+
 
     class FilterKernels:
 
@@ -2220,7 +2322,7 @@ class Image(object):
             return result
 
         @staticmethod
-        def image2patches(img, patchsize, overlappx=0, verbose=False):
+        def image2patches(img, patchsize, overlap_px=0, verbose=False):
             """
             Convert single image to a list of patches.
             The size of a patch is determined by patchsize, be aware of rounding incase image width or height cannot be divided through the patchsize.
@@ -2243,7 +2345,7 @@ class Image(object):
             w0_size = int(w0 / cols + 0.5)
 
             # add black border to image
-            bordersize = int(overlappx)  # require bordersize of the patches
+            bordersize = int(overlap_px)  # require bordersize of the patches
 
             channels = len(img.shape)
             if (channels == 3):
@@ -2276,8 +2378,85 @@ class Image(object):
                         len(patches), w0, h0, rows, cols))
             return patches, cols
 
-        @staticmethod
-        def patches2image(images, cols=5, overlappx=0, whitebackground=True, verbose=False):
+        def patches2image_overlay(images, cols=5, overlap_px=0, whitebackground=True, verbose=False):
+            """
+            Stitch a list of image patches to a single image. The number of columns determines the next line.
+            Works both for color and grayscale images.
+            overlap in pixels (default overlap=0)
+            Other definitions often used for this process: image montage or image stitching
+            when cols is set to 0 rows and cols will be equal.
+            with overlay a mask is applied to connect the boundaries.
+
+            :Parameters: imagelist, cols=5, overlap_perc=0, whitebackground=True
+            :Returns: image
+            """
+
+            if (cols == 0):
+                cols = int(np.math.sqrt(len(images)))
+                rows = cols
+                if verbose == True:
+                    print('patches2image equal rows and columns')
+            else:
+                if (cols > len(images)):
+                    cols = len(images)
+
+                rows = int(len(images) / cols + 0.5)
+                if (rows * cols) < len(images):
+                    cols = cols + (len(images) - (rows * cols))  # number of total images should be correct
+
+            maxwidth = max(image.shape[1] for image in images)
+            maxheight = max(image.shape[0] for image in images)
+            gap = int(-overlap_px * 2.)
+            # maxwidth = maxwidth
+            # maxheight = maxheight
+
+            height = maxheight * rows + (gap * (rows - 1))
+            width = maxwidth * cols + (gap * (cols - 1))
+            # output = np.zeros((height, width), np.uint8)
+            if verbose == True:
+                print(
+                    "patches2image images {}, new_width {}, new_height {}, rows {}, cols {}, gap {}".format(len(images),
+                                                                                                            width,
+                                                                                                            height,
+                                                                                                            rows, cols,
+                                                                                                            gap))
+            channels = len(images[0].shape)
+            if (channels == 3):
+                # color image
+                output2 = np.zeros((height, width, 3), np.uint8)
+            else:
+                output2 = np.zeros((height, width), np.uint8)
+
+            x = 0
+            y = 0
+            for image in images:
+
+                if (channels == 3):
+                    # color image
+                    output = np.zeros((height, width, 3), np.uint8)
+                else:
+                    output = np.zeros((height, width), np.uint8)
+
+                if (whitebackground == True):
+                    cv.bitwise_not(output, output)
+
+                # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # changing image to grayscale
+                h, w = image.shape[0], image.shape[1]
+
+                output[(y * h + gap * y):((y + 1) * h + gap * y), (x * w + gap * x):((x + 1) * w + gap * x)] = image
+
+                output2 = Image.add_overlay(output2, output)
+                x += 1
+                if (x > (cols - 1)):
+                    x = 0
+
+                    y += 1
+            # out = cv2.cvtColor(output, cv2.COLOR_GRAY2RGB)  # and back
+            h4, w4 = output2.shape[0], output.shape[1]
+            out = output2[overlap_px:h4 - overlap_px, overlap_px:w4 - overlap_px]
+            return out
+
+        def patches2image(images, cols=5, overlap_px=0, whitebackground=True, verbose=False):
             """
             Stitch a list of image patches to a single image. The number of columns determines the next line.
             Works both for color and grayscale images.
@@ -2304,7 +2483,7 @@ class Image(object):
 
             maxwidth = max(image.shape[1] for image in images)
             maxheight = max(image.shape[0] for image in images)
-            gap = int(-overlappx * 2.)
+            gap = int(-overlap_px * 2.)
             # maxwidth = maxwidth
             # maxheight = maxheight
 
@@ -2341,7 +2520,7 @@ class Image(object):
                     y += 1
             # out = cv2.cvtColor(output, cv2.COLOR_GRAY2RGB)  # and back
             h4, w4 = output.shape[0], output.shape[1]
-            out = output[overlappx:h4 - overlappx, overlappx:w4 - overlappx]
+            out = output[overlap_px:h4 - overlap_px, overlap_px:w4 - overlap_px]
             return out
 
         @staticmethod
@@ -2656,7 +2835,7 @@ class Image(object):
                 ret, frame = cap.read()
                 frame = Image.resize(frame, resize_factor)
                 imagelist.append(frame)
-            out = Image.Tools.patches2image(imagelist, cols=rows, overlappx=0, whitebackground=False)
+            out = Image.Tools.patches2image(imagelist, cols=rows, overlap_px=0, whitebackground=False)
             Image.save(out, fn_contactsheet)
 
         @staticmethod
@@ -2831,19 +3010,30 @@ class Image(object):
             :Returns: image without features that touch the boundaries
             """
 
-            if black_background==True:
+            if black_background == True:
                 img = Image.Adjust.invert(img)
             height, width = img.shape[:2]
-            mask = np.zeros((height+2, width+2), np.uint8)
+            mask = np.zeros((height + 2, width + 2), np.uint8)
             new_img = img.copy()
             for y in range(height):
                 for x in range(width):
-                    if x == 0 or y == 0 or x == width-1 or y == height-1:
+                    if x == 0 or y == 0 or x == width - 1 or y == height - 1:
                         # Floodfill from boundary pixels with white color (255)
                         cv.floodFill(new_img, mask, (x, y), (255, 255, 255))
             # Invert the image so that the black pixels are the features to remove
-            if black_background==True:
+            if black_background == True:
                 result = Image.Adjust.invert(new_img)
             else:
                 result = new_img
             return result
+
+        @staticmethod
+        def draw_color_bar():
+            """Draw a gradient
+
+            :Parameters: image, resize=0.15
+            """
+            gradient = np.arange(256, dtype=np.uint8).reshape(1, -1)
+            colorbar = np.repeat(gradient, 50, axis=0)
+            colorbar = Image.Convert.toRGB(colorbar)
+            return colorbar

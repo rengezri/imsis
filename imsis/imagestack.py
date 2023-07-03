@@ -281,18 +281,18 @@ class ImageStack:
         s = []
         if horizontal == True:
             if reverse == True:
-                imagen = ims.Image.Tools.patches2image([image1, image0], cols=2, overlappx=0, whitebackground=False)
+                imagen = ims.Image.Tools.patches2image([image1, image0], cols=2, overlap_px=0, whitebackground=False)
             else:
-                imagen = ims.Image.Tools.patches2image([image0, image1], cols=2, overlappx=0, whitebackground=False)
+                imagen = ims.Image.Tools.patches2image([image0, image1], cols=2, overlap_px=0, whitebackground=False)
             w = image0.shape[1]
             x_speed = (w / duration)
             y_speed = 0
             h = image0.shape[0]
         else:
             if reverse == True:
-                imagen = ims.Image.Tools.patches2image([image1, image0], cols=1, overlappx=0, whitebackground=False)
+                imagen = ims.Image.Tools.patches2image([image1, image0], cols=1, overlap_px=0, whitebackground=False)
             else:
-                imagen = ims.Image.Tools.patches2image([image0, image1], cols=1, overlappx=0, whitebackground=False)
+                imagen = ims.Image.Tools.patches2image([image0, image1], cols=1, overlap_px=0, whitebackground=False)
 
             h = image0.shape[0]
             y_speed = (h / duration)

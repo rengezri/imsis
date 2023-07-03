@@ -15,6 +15,8 @@ import cv2 as cv
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.ticker as ticker
+
 
 import numpy as np
 
@@ -33,56 +35,6 @@ from collections import deque
 from enum import Enum
 
 rng.seed(12345)
-
-colors = [
-    [255, 255, 128],
-    [255, 255, 64],
-    [255, 192, 192],
-    [255, 192, 128],
-    [255, 192, 64],
-    [255, 128, 192],
-    [255, 128, 128],
-    [255, 128, 64],
-    [255, 64, 192],
-    [255, 64, 128],
-    [255, 64, 64],
-    [192, 255, 192],
-    [192, 255, 128],
-    [192, 255, 64],
-    [192, 192, 255],
-    [192, 192, 128],
-    [192, 192, 64],
-    [192, 128, 192],
-    [192, 128, 128],
-    [192, 128, 64],
-    [192, 64, 192],
-    [192, 64, 128],
-    [192, 64, 64],
-    [128, 255, 192],
-    [128, 255, 128],
-    [128, 255, 64],
-    [128, 192, 192],
-    [128, 192, 128],
-    [128, 192, 64],
-    [128, 128, 192],
-    [128, 128, 255],
-    [128, 128, 64],
-    [128, 64, 192],
-    [128, 64, 128],
-    [128, 64, 64],
-    [64, 255, 192],
-    [64, 255, 128],
-    [64, 255, 64],
-    [64, 192, 192],
-    [64, 192, 128],
-    [64, 192, 64],
-    [64, 128, 192],
-    [64, 128, 255],
-    [64, 128, 64],
-    [64, 64, 192],
-    [64, 64, 128],
-    [64, 64, 255]
-]
 
 
 class Analyze(object):
@@ -188,7 +140,7 @@ class Analyze(object):
 
         if (plotresult == True):
             plt.figure(figsize=(8, 8))
-            plt.gcf().canvas.set_window_title('Find Edges - Image - 1st Derivative, 2nd Derivative')
+            plt.gcf().canvas.setWindowTitle('Find Edges - Image - 1st Derivative, 2nd Derivative')
             gridspec.GridSpec(4, 1)
             plt.subplot2grid((4, 1), (0, 0), colspan=1, rowspan=2)
             st1 = "Edge position=({},{})".format(xpos, ypos)
@@ -199,10 +151,10 @@ class Analyze(object):
             plt.axvline(x=yf, color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
-            plt.grid(b=True, which='major', color='#666666', linestyle='-')
+            plt.grid(visible=True, which='major', color='#666666', linestyle='-')
             # Show the minor grid lines with very faint and almost transparent grey lines
             plt.minorticks_on()
-            plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+            plt.grid(visible=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
             #  plt.grid(color='green', linestyle='--', linewidth=0.5)
 
             plt.subplot2grid((4, 1), (3, 0), colspan=1, rowspan=1)
@@ -210,22 +162,26 @@ class Analyze(object):
             plt.axvline(x=yf, color='g', linestyle='--')
 
             # Show the major grid lines with dark grey lines
-            plt.grid(b=True, which='major', color='#666666', linestyle='-')
+            plt.grid(visible=True, which='major', color='#666666', linestyle='-')
             # Show the minor grid lines with very faint and almost transparent grey lines
             plt.minorticks_on()
-            plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+            plt.grid(visible=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
             #  plt.grid(color='green', linestyle='--', linewidth=0.5)
 
             plt.tight_layout()
-            if autoclose > 0:
-                try:
-                    plt.show(block=False)
-                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                except:
-                    print("interrupted while waiting.")
+            if autoclose == -1:
                 plt.close("all")
             else:
-                plt.show()
+                if autoclose > 0:
+                    try:
+                        plt.show(block=False)
+                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                    except:
+                        print("Interrupted while waiting.")
+                    plt.close("all")
+                else:
+                    plt.show()
+                plt.close()
 
         return rgb, xpos, ypos
 
@@ -327,28 +283,32 @@ class Analyze(object):
 
         if (plotresult == True):
             plt.figure(figsize=(8, 8))
-            plt.gcf().canvas.set_window_title('Line Profile')
+            plt.gcf().canvas.setWindowTitle('Line Profile')
             gridspec.GridSpec(3, 1)
             plt.subplot2grid((3, 1), (0, 0), colspan=1, rowspan=2)
             plt.imshow(rgb)
             plt.subplot2grid((3, 1), (2, 0), colspan=1, rowspan=1)
             plt.plot(x, y)
             # Show the major grid lines with dark grey lines
-            plt.grid(b=True, which='major', color='#666666', linestyle='-')
+            plt.grid(visible=True, which='major', color='#666666', linestyle='-')
             # Show the minor grid lines with very faint and almost transparent grey lines
             plt.minorticks_on()
-            plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+            plt.grid(visible=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
             #  plt.grid(color='green', linestyle='--', linewidth=0.5)
             plt.tight_layout()
-            if autoclose > 0:
-                try:
-                    plt.show(block=False)
-                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                except:
-                    print("interrupted while waiting.")
+            if autoclose == -1:
                 plt.close("all")
             else:
-                plt.show()
+                if autoclose > 0:
+                    try:
+                        plt.show(block=False)
+                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                    except:
+                        print("Interrupted while waiting.")
+                    plt.close("all")
+                else:
+                    plt.show()
+                plt.close()
         return x, y
 
     @staticmethod
@@ -990,70 +950,6 @@ class Analyze(object):
         return img
 
     @staticmethod
-    def feature_size_distribution(orig, thresh):
-        """Determine the distribution of features of different size
-        Enter the threshold value for masking. Features will be labeled and counted.
-
-        overlay displays an overlay of the features found on top of the original image.
-        out shows the labeled features without overlay
-        graph shows the size distribution
-        cntsSorted contains the list of contours
-
-        DEPRECIATED - replaced by class FeatureSizeDistribution
-
-        :Parameters: original_image, threshold_image
-        :Returns: overlay, out, cntsSorted, (area, colorvalue)
-        """
-
-        # img = ims.Image.Convert.toGray(orig)
-        # Find all contours on the map
-        # _th, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-
-        # cv version check
-        (cvmajor, cvminor, _) = cv.__version__.split(".")
-        if (int(cvmajor) < 4):
-            _th, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-        else:
-            contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-
-        print("Number of contours detected = %d" % len(contours))
-        cntsSorted = sorted(contours, key=lambda x: cv.contourArea(x))
-        # Fill second level regions on the map
-        coln = 0
-
-        minarea = cv.contourArea(cntsSorted[0])
-        maxarea = cv.contourArea(cntsSorted[-1])
-        mularea = (len(colors) - 1) / (maxarea - minarea)
-
-        img5 = ims.Image.Convert.toRGB(orig)
-        img5b = img5.copy()
-
-        # fig = plt.figure(figsize=(12, 6))
-        sizedistout = []
-        for i in range(len(cntsSorted)):
-            area = cv.contourArea(cntsSorted[i])
-            colv = area * mularea
-            colvi = int(((colv)))
-
-            coln = colors[colvi]
-            # coln = (coln + 1) % len(colors)
-            img6 = cv.drawContours(img5, cntsSorted, i, coln, -1)
-            # out = cv.drawContours(img1,cntsSorted,i,coln,-1)
-
-            col = [coln[0] / 255., coln[1] / 255., coln[2] / 255., 1]
-            plt.bar(i, area, color=col)
-            plt.xlabel("Contours")
-            plt.ylabel("Area")
-            sizedistout.append([area, colv])
-
-        out = cv.bitwise_and(img6, img6, mask=thresh)
-
-        overlay = cv.addWeighted(img5b, 0.7, out, 0.3, 0)
-        # graph = fig
-        # fig.show()
-        return overlay, out, cntsSorted, sizedistout
-
-    @staticmethod
     def correct_imageshift_list(framelist, update_reference_image=True, high_precision=False):
         """
         DEPRECIATED - use Imagestack.align_images
@@ -1067,7 +963,9 @@ class Analyze(object):
         :Parameters: image list
         :Returns: image list, correctiondata list(X,Y,Score)
         """
-        framelist2, correctiondatalist = ims.ImageStack.align_images(framelist,update_reference_image=update_reference_image,high_precision=high_precision)
+        framelist2, correctiondatalist = ims.ImageStack.align_images(framelist,
+                                                                     update_reference_image=update_reference_image,
+                                                                     high_precision=high_precision)
         return framelist2, correctiondatalist
 
     @staticmethod
@@ -1199,20 +1097,24 @@ class Analyze(object):
 
             plt.figure(3)
             plt.clf()
-            plt.gcf().canvas.set_window_title('Power Spectrum')
+            plt.gcf().canvas.setWindowTitle('Power Spectrum')
             plt.semilogy(psd1D)
             plt.xlabel("Spatial Frequency")
             plt.ylabel("Power Spectrum")
 
-            if autoclose > 0:
-                try:
-                    plt.show(block=False)
-                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                except:
-                    print("interrupted while waiting.")
+            if autoclose == -1:
                 plt.close("all")
             else:
-                plt.show()
+                if autoclose > 0:
+                    try:
+                        plt.show(block=False)
+                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                    except:
+                        print("Interrupted while waiting.")
+                    plt.close("all")
+                else:
+                    plt.show()
+                plt.close()
 
         return psd1D
 
@@ -1278,8 +1180,6 @@ class Analyze(object):
             colors, count = np.unique(img.reshape(-1, 1), axis=0, return_counts=True)
             out = (colors[count.argmax()]).tolist()
         return out
-
-
 
     class SharpnessDetection:
         # Ref: http: // radjkarl.github.io / imgProcessor / _modules / imgProcessor / measure / sharpness / parameters.html
@@ -2065,18 +1965,22 @@ class Analyze(object):
                 print("template: {},{},{},{} searchregion: {},{},{},{}".format(xt0, yt0, xt1, yt1, xs0, ys0, xs1, ys1))
                 rgb1 = ims.Image.Convert.BGRtoRGB(rgb)
                 plt.plot()
-                plt.gcf().canvas.set_window_title('Find Feature')
+                plt.gcf().canvas.setWindowTitle('Find Feature')
                 plt.imshow(rgb1)
 
-                if autoclose > 0:
-                    try:
-                        plt.show(block=False)
-                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                    except:
-                        print("interrupted while waiting.")
+                if autoclose == -1:
                     plt.close("all")
                 else:
-                    plt.show()
+                    if autoclose > 0:
+                        try:
+                            plt.show(block=False)
+                            plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                        except:
+                            print("Interrupted while waiting.")
+                        plt.close("all")
+                    else:
+                        plt.show()
+                    plt.close()
 
             return rgb
 
@@ -2099,14 +2003,18 @@ class Analyze(object):
                                                                                                   self.s_center_perc,
                                                                                                   self.s_size_perc)
 
-
-
     class FeatureProperties(object):
 
         class ColorScheme(Enum):
             Original = 1
             Size = 2
             Random = 3
+
+        class SizeDistributionXAxis(Enum):
+            Area = 1
+            EquivalentDiameter = 2
+            AspectRatio = 3
+
 
         propertynames = ['Area',
                          'EquivalentDiameter',
@@ -2126,12 +2034,16 @@ class Analyze(object):
                          'MaxIntensity',
                          'Extent',
                          'AspectRatio',
-                         'ColorValue',
+                         'ColR',
+                         'ColG',
+                         'ColB',
                          'Filename']
 
-
         @staticmethod
-        def _process_contours(orig, thresh, contours, minarea=0, maxarea=-1, filename="", colorscheme=ColorScheme.Random):
+        def _process_contours(orig, thresh, contours, minarea=0, maxarea=-1, filename="",
+                              colorscheme=ColorScheme.Random):
+            colormap = cv.COLORMAP_JET  # Choose an OpenCV colormap (you can change 'COLORMAP_JET' to any other colormap)
+
             cntsSorted = sorted(contours, key=lambda x: cv.contourArea(x))
 
             imggray = ims.Image.Convert.toGray(orig)
@@ -2211,33 +2123,48 @@ class Analyze(object):
                             [area, equi_diameter, orientation, majoraxislength, minoraxislength, perimeter, xcoord,
                              ycoord,
                              solidity, bboxwidth, bboxheight, bboxarea, hull_area, minintensity, meanintensity,
-                             maxintensity, extent, aspect_ratio, 0, filename])
+                             maxintensity, extent, aspect_ratio, 0,0,0, filename])
                         cntsSorted_new.append(cntsSorted[i])
 
-            print("countsSorted_new: ", len(cntsSorted_new))
+            # print("countsSorted_new: ", len(cntsSorted_new))
+
             if (len(cntsSorted_new) > 0):
                 minarea = cv.contourArea(cntsSorted_new[0])
                 maxarea = cv.contourArea(cntsSorted_new[-1])
-                mularea = (len(colors) - 1) / (maxarea - minarea)
+                mularea = (255 / ((maxarea) - minarea))
 
-                colvalidx = Analyze.FeatureProperties.propertynames.index("ColorValue")
+                colvalidxR = Analyze.FeatureProperties.propertynames.index("ColR")
+                colvalidxG = Analyze.FeatureProperties.propertynames.index("ColG")
+                colvalidxB = Analyze.FeatureProperties.propertynames.index("ColB")
 
                 for i in range(len(cntsSorted_new)):
-                    if colorscheme==Analyze.FeatureProperties.ColorScheme.Original:
+                    if colorscheme == Analyze.FeatureProperties.ColorScheme.Original:
                         cx, cy, w, h = cv.boundingRect(cntsSorted_new[i])
-                        v = int(orig[int(cy+h/2),int(cx+w/2)])
-                        area = cv.contourArea(cntsSorted_new[i]) - minarea #had +1 here, removed
+                        v = int(orig[int(cy + h / 2), int(cx + w / 2)])
+                        area = cv.contourArea(cntsSorted_new[i]) - minarea  # had +1 here, removed
                         colvi = int(area * mularea)
-                        coln=[v,v,v] #output is original image pixel value
+                        coln = [v, v, v]  # output is original image pixel value
                     else:
-                        if colorscheme==Analyze.FeatureProperties.ColorScheme.Size:
-                            area = cv.contourArea(cntsSorted_new[i]) - minarea #had +1 here, removed
+                        if colorscheme == Analyze.FeatureProperties.ColorScheme.Size:
+                            area = cv.contourArea(cntsSorted_new[i]) - minarea  # had +1 here, removed
                             colvi = int(area * mularea)
-                            coln = colors[colvi] #output is area based intensity
+                            # coln = colors[colvi] #output is area based intensity
+                            coln = cv.applyColorMap(np.uint8([[colvi]]), colormap)[0, 0, :]
+
                         else:
-                            colvi=0
+                            colvi = 0
                             coln = np.uint8(np.random.random_integers(0, 255, 3)).tolist()
-                    featureproperties[i][colvalidx] = colvi
+                    #featureproperties[i][colvalidx] = colvi
+
+                    #coln2 = cv.applyColorMap(np.array([[coln]], dtype=np.uint8), cv.COLORMAP_JET)[0][0]
+                    coln2=coln
+                    featureproperties[i][colvalidxR] = coln2[2]/255.0
+                    featureproperties[i][colvalidxG] = coln2[1]/255.0
+                    featureproperties[i][colvalidxB] = coln2[0]/255.0
+
+                    coln = (int(coln[0]), int(coln[1]), int(coln[2]))  # numeric error without this line
+                    # print(coln)
+
                     img6 = cv.drawContours(img5c, cntsSorted_new, i, coln, -1)
 
                 print("Number of contours detected = %d" % len(featureproperties))
@@ -2288,7 +2215,8 @@ class Analyze(object):
 
         @staticmethod
         def get_featureproperties(orig, thresh, minarea=0,
-                                  maxarea=-1, applydistancemap=True, distance_threshold=0.2, filename="", colorscheme=ColorScheme.Size):
+                                  maxarea=-1, applydistancemap=True, distance_threshold=0.2, filename="",
+                                  colorscheme=ColorScheme.Size):
             """Determine the list of features with properties per patch
 
             threshold value for the applied image mask.
@@ -2318,7 +2246,9 @@ class Analyze(object):
                         'MaxIntensity',
                         'Extent',
                         'AspectRatio',
-                        'ColorValue',
+                        'ColR',
+                        'ColG',
+                        'ColB',
                         'Filename']
 
 
@@ -2332,6 +2262,7 @@ class Analyze(object):
 
             # cv version check
 
+
             if applydistancemap == True:
                 contours, markers = Analyze.FeatureProperties._contours_with_distance_map(orig, thresh,
                                                                                           distance_threshold)
@@ -2344,65 +2275,169 @@ class Analyze(object):
                     contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
 
             overlay, labels, featureproperties = Analyze.FeatureProperties._process_contours(orig, thresh, contours,
-                                                                                          minarea, maxarea, filename,colorscheme=colorscheme)
+                                                                                             minarea, maxarea, filename,
+                                                                                             colorscheme=colorscheme)
+
             return overlay, labels, markers, featureproperties
 
-        def plot_feature_size_distribution(im_labeled, featureproperties, path_out, autoclose=0):
+        @staticmethod
+        def plot_feature_size_distribution(im_labeled, featureproperties, filename, autoclose=0, num_bins=32,
+                                           sizedistributionxaxis=SizeDistributionXAxis.Area):
             """Plot the feature size distribution
-                :Parameters: labeled_image, featureproperties, path_out,autoclose
-                :Returns: NA
+            :Parameters: labeled_image, featureproperties, path_out, autoclose
+            :Returns: NA
+            """
+
+            if len(featureproperties)>0:
+
+
+                if sizedistributionxaxis == Analyze.FeatureProperties.SizeDistributionXAxis.Area:
+                    areaidx = Analyze.FeatureProperties.propertynames.index("Area")
+                    xlabel = "Area [pixels]"
+                else:
+                    if sizedistributionxaxis == Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio:
+                        areaidx = Analyze.FeatureProperties.propertynames.index("AspectRatio")
+                        xlabel = "AspectRatio [-]"
+                    else:
+                        areaidx = Analyze.FeatureProperties.propertynames.index("EquivalentDiameter")
+                        xlabel = "Diameter [pixels]"
+
+                coloridxR = Analyze.FeatureProperties.propertynames.index("ColR")
+                coloridxG = Analyze.FeatureProperties.propertynames.index("ColG")
+                coloridxB = Analyze.FeatureProperties.propertynames.index("ColB")
+
+                arealist = []
+                color_values = []
+
+                for item in featureproperties:
+                    arealist.append(item[areaidx])
+
+
+                    color_value = (item[coloridxR],item[coloridxG],item[coloridxB])
+                    color_values.append(color_value)
+
+                gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
+                fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
+
+                axs[0].imshow(cv.cvtColor(im_labeled, cv.COLOR_BGR2RGB))
+                axs[0].set_title("Image")
+
+                num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
+
+                #cmap_jet = cv.applyColorMap(np.arange(256, dtype=np.uint8), cv.COLORMAP_JET)
+
+                hist, bin_edges = np.histogram(arealist, bins=num_bins_int)
+
+                axs[1].bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor='black', color=color_values, zorder=3)
+                axs[1].set_xlabel("{}".format(xlabel))
+                axs[1].set_ylabel("Counts")
+                axs[1].set_title("Size Distribution")
+                axs[1].set_yticks(np.arange(max(hist) + 1))  # Set y-axis ticks to integers
+                axs[1].margins(x=0)
+
+                axs[1].xaxis.set_major_locator(ticker.AutoLocator())
+                axs[1].xaxis.set_minor_locator(ticker.AutoMinorLocator())
+                axs[1].yaxis.set_major_locator(ticker.AutoLocator())
+                axs[1].yaxis.set_minor_locator(ticker.AutoMinorLocator())
+
+                asp = np.diff(axs[1].get_xlim())[0] / np.diff(axs[1].get_ylim())[0]
+                asp /= np.abs(np.diff(axs[0].get_xlim())[0] / np.diff(axs[0].get_ylim())[0])
+                axs[1].set_aspect(asp)
+                axs[1].grid(axis='x', color='0.95', zorder=0)
+
+                plt.tight_layout()
+                plt.savefig(filename)
+
+                if autoclose == -1:
+                    plt.close("all")
+                else:
+                    if autoclose > 0:
+                        try:
+                            plt.show(block=False)
+                            plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                        except:
+                            print("Interrupted while waiting.")
+                        plt.close("all")
+                    else:
+                        plt.show()
+                    plt.close()
+            else:
+                print("Error: feature list empty.")
+
+
+
+        @staticmethod
+        def plot_feature_size_ids(im_labeled, featureproperties, filename, autoclose=0):
+            """Plot the feature size versus feature id
+            :Parameters: labeled_image, featureproperties, path_out, autoclose
+            :Returns: NA
             """
 
             areaidx = Analyze.FeatureProperties.propertynames.index("Area")
-            coloridx = Analyze.FeatureProperties.propertynames.index("ColorValue")
-
+            coloridxR = Analyze.FeatureProperties.propertynames.index("ColR")
+            coloridxG = Analyze.FeatureProperties.propertynames.index("ColG")
+            coloridxB = Analyze.FeatureProperties.propertynames.index("ColB")
             arealist = []
-            colorList = []
+            color_values = []
+
             for item in featureproperties:
                 arealist.append(item[areaidx])
 
-                coln = colors[item[coloridx]]
-                # print(coln)
-                col = [coln[2] / 255., coln[1] / 255., coln[0] / 255., 1]
-                colorList.append(col)
+                color_value = (item[coloridxR],item[coloridxG],item[coloridxB])
+                color_values.append(color_value)
 
-            Y = (np.array(arealist))
-            X = np.arange(1, len(arealist) + 1)
+            Y = np.array(arealist)
+            # X = np.arange(1, len(arealist) + 1)
+            X = np.arange(1, len(arealist) + 1).astype(int)
 
-            plt.figure(figsize=(8, 4))
-            try:
-                plt.gcf().canvas.set_window_title('Size Distribution')
-            except:
-                print("Matplotlib set_window_title changed depreciated and removed.")
-                plt.gcf().canvas.setWindowTitle('Size Distribution')
+            gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
+            fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
 
+            axs[0].imshow(ims.Image.Convert.BGRtoRGB(im_labeled))
+            axs[0].set_title("Image")
 
-            gridspec.GridSpec(1, 2)
-            plt.subplot2grid((1, 2), (0, 0), colspan=1, rowspan=1)
-            plt.imshow(ims.Image.Convert.BGRtoRGB(im_labeled))
+            width = 1
+            axs[1].grid(axis='x', color='0.95', zorder=0)
+            axs[1].bar(X, Y, color=color_values, width=width, linewidth=0, align='center', zorder=3)
+            axs[1].set_xticks(X)
+            axs[1].set_xticklabels(X.astype(int))
+            axs[1].set_title("All Features")
 
-            plt.subplot2grid((1, 2), (0, 1), colspan=1, rowspan=1)
+            axs[1].set_xlabel("Feature Id [#]")
+            axs[1].set_ylabel("Area [pixels]")
+            axs[1].margins(x=0)
 
-            plt.bar(X, Y, color=colorList)
-            plt.xlabel("Feature Number")
-            plt.ylabel("Area [pixels]")
+            axs[1].xaxis.set_major_locator(ticker.AutoLocator())
+            axs[1].xaxis.set_minor_locator(ticker.AutoMinorLocator())
+            axs[1].yaxis.set_major_locator(ticker.AutoLocator())
+            axs[1].yaxis.set_minor_locator(ticker.AutoMinorLocator())
+
             plt.tight_layout()
 
-            plt.savefig(path_out + "size_distribution.png")
-            if autoclose > 0:
-                try:
-                    plt.show(block=False)
-                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                except:
-                    print("interrupted while waiting.")
+            asp = np.diff(axs[1].get_xlim())[0] / np.diff(axs[1].get_ylim())[0]
+            asp /= np.abs(np.diff(axs[0].get_xlim())[0] / np.diff(axs[0].get_ylim())[0])
+            axs[1].set_aspect(asp)
+
+            plt.savefig(filename)
+
+            if autoclose == -1:
                 plt.close("all")
             else:
-                plt.show()
-            plt.close()
+                if autoclose > 0:
+                    try:
+                        plt.show(block=False)
+                        plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                    except:
+                        print("Interrupted while waiting.")
+                    plt.close("all")
+                else:
+                    plt.show()
+                plt.close()
 
-        def get_image_with_boundingboxes(image, featureproperties, path_out):
+        @staticmethod
+        def get_image_with_boundingboxes(image, featureproperties):
             """Plot the feature size distribution
-                :Parameters: image, featureproperties, path_out
+                :Parameters: image, featureproperties
                 :Returns: image_with_boundingboxes
             """
             widx = Analyze.FeatureProperties.propertynames.index("BoundingBoxWidth")
@@ -2414,17 +2449,18 @@ class Analyze(object):
 
             for item in featureproperties:
                 # Draw rectangle around segmented items.
-                w = item[widx]
-                h = item[hidx]
-                x = item[xidx] - int(w / 2)
-                y = item[yidx] - int(h / 2)
+                w = int(item[widx])
+                h = int(item[hidx])
+                x = int(item[xidx] - int(w / 2))
+                y = int(item[yidx] - int(h / 2))
 
-                img = cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 3)
+                img = cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             return img
 
-        def get_image_with_centermarkers(image, featureproperties, path_out):
+        @staticmethod
+        def get_image_with_centermarkers(image, featureproperties):
             """Plot the feature size distribution
-                :Parameters: image, featureproperties, path_out
+                :Parameters: image, featureproperties
                 :Returns: image_with_labels
             """
             xidx = Analyze.FeatureProperties.propertynames.index("XCoord")
@@ -2433,12 +2469,13 @@ class Analyze(object):
             img = image.copy()
 
             for item in featureproperties:
-                x = item[xidx]
-                y = item[yidx]
+                x = int(item[xidx])
+                y = int(item[yidx])
 
                 img = cv.circle(img, (x, y), 1, (0, 0, 255), 3)
             return img
 
+        @staticmethod
         def get_image_with_ellipses(image, featureproperties):
             """Plot the feature size distribution
                 :Parameters: image, featureproperties, path_out
@@ -2464,9 +2501,9 @@ class Analyze(object):
             return img
 
 
-
+        @staticmethod
         def save_boundingboxes(image, featureproperties, path_out, max_features_per_page=50):
-            """Plot a patched image of features found
+            """Plot a patched image of each feature found, this will generate a large list!
                 :Parameters: image, featureproperties, path_out
                 :Returns: NA
             """
@@ -2488,6 +2525,26 @@ class Analyze(object):
                 ims.Image.save(bboximage, path_out + "patches\label_{}.png".format(j), verbose=False)
                 j = j + 1
 
+        @staticmethod
+        def save_featureproperties(fn, featurelist):
+            """save feature properties to CSV
+                :Parameters: filename, featurelist
+                :Returns: none
+            """
+            ims.Misc.save_multicolumnlist(fn,
+                                      featurelist,
+                                      ims.Analyze.FeatureProperties.propertynames)
+
+        @staticmethod
+        def load_featureproperties(fn):
+            """save feature properties to CSV
+                :Parameters: filename, featurelist
+                :Returns: none
+            """
+            featurelist = ims.Misc.load_multicolumnlist(fn)
+            return featurelist
+
+        @staticmethod
         def label_enhance_intensity(image):
             """Modify label, enhance the histogram
                 :Parameters: image_labels
@@ -2498,7 +2555,7 @@ class Analyze(object):
 
             # Stretch the histogram between gray level 64 and 255
             stretched = cv.equalizeHist(gray)
-            stretched = cv.normalize(stretched, None, (32 + 16), 255, cv.NORM_MINMAX)
+            stretched = cv.normalize(stretched, None, 0, 255, cv.NORM_MINMAX)
 
             # Convert the image back to BGR color space
             enhanced = cv.cvtColor(stretched, cv.COLOR_GRAY2BGR)
@@ -2508,6 +2565,7 @@ class Analyze(object):
             enhanced[mask] = [0, 0, 0]
             return enhanced
 
+        @staticmethod
         def label_set_black_background(image):
             """Modify label, set blackground to (0,0,0)
                 :Parameters: image_labels
@@ -2528,6 +2586,8 @@ class Analyze(object):
 
             return black_background
 
+        '''
+        @staticmethod
         def label_recolor_to_area(labels):
             """Modify label, recolor the intensities by area (smaller=brighter)
             note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
@@ -2563,6 +2623,7 @@ class Analyze(object):
 
             return enhanced
 
+        @staticmethod
         def label_recolor_to_original_intensities(labels, source_image):
             """Modify label, recolor the intensities by source image pixelsintensity
                 note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
@@ -2596,6 +2657,7 @@ class Analyze(object):
             enhanced = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
 
             return enhanced
+            '''
 
     class OpticalFlow(object):
         def draw_flow(img, flow, step=16):

@@ -35,7 +35,6 @@ class View(object):
             plt.gcf().canvas.set_window_title(window_title)
         except:
             plt.gcf().canvas.setWindowTitle(window_title)
-            print("ERROR: Matplotlib versioning errors..")
 
         plt.title(title)
 
@@ -49,19 +48,19 @@ class View(object):
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
 
-
-        if autoclose>0:
-            try:
-                plt.show(block=False)
-                plt.pause(autoclose)  # 3 seconds, I use 1 usually
-            except:
-                print("interrupted while waiting.")
+        if autoclose == -1:
             plt.close("all")
         else:
-            plt.show()
-            #plt.clf()
-            #plt.close()
-            #print('plot closed')
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
 
     @staticmethod
     def plot_list(imglist, titlelist=[''], window_title='Plot', save_image_filename="",autoclose=0):
@@ -86,7 +85,6 @@ class View(object):
             plt.gcf().canvas.set_window_title(window_title)
         except:
             plt.gcf().canvas.setWindowTitle(window_title)
-            print("ERROR: Matplotlib versioning errors..")
 
         # print(rows,cols)
         i = 0
@@ -118,15 +116,19 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        if autoclose>0:
-            try:
-                plt.show(block=False)
-                plt.pause(autoclose)  # 3 seconds, I use 1 usually
-            except:
-                print("interrupted while waiting.")
+        if autoclose == -1:
             plt.close("all")
         else:
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
 
     # cdf cumulative distribution function
     # plot image and histogram
@@ -158,8 +160,6 @@ class View(object):
             plt.gcf().canvas.set_window_title(window_title)
         except:
             plt.gcf().canvas.setWindowTitle(window_title)
-            print("ERROR: Matplotlib versioning errors..")
-
 
         gridspec.GridSpec(3, 1)
         plt.subplot2grid((3, 1), (0, 0), colspan=1, rowspan=2)
@@ -178,15 +178,77 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        if autoclose>0:
-            try:
-                plt.show(block=False)
-                plt.pause(autoclose)  # 3 seconds, I use 1 usually
-            except:
-                print("interrupted while waiting.")
+        if autoclose == -1:
             plt.close("all")
         else:
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
+
+    # cdf cumulative distribution function
+    # plot image and histogram
+    @staticmethod
+    def plot_histogram(img, title='', window_title='Plot', save_image_filename="",autoclose=0):
+        """Plot a histogram (no image)
+
+        :Parameters: image, title, window_title, save_image_filename
+        """
+        # w, h = img.shape[::-1]
+
+        # img = Image.Convert.BGRtoRGB(img)
+
+        w = img.shape[1]
+        h = img.shape[0]
+        img = ims.Image.Convert.BGRtoRGB(img)
+
+        if (img.dtype == np.uint8):
+            rng = 256
+        else:
+            rng = 65535
+        # bitdepth = img.dtype
+        hist, bins = np.histogram(img.flatten(), 256, [0, rng])
+        cdf = hist.cumsum()
+        cdf_normalized = cdf * hist.max() / cdf.max()  # this line not necessary.
+        plt.figure(figsize=(8, 8))
+
+        try:
+            plt.gcf().canvas.set_window_title(window_title)
+        except:
+            plt.gcf().canvas.setWindowTitle(window_title)
+
+        gridspec.GridSpec(1, 1)
+        plt.title(title)
+        plt.plot(cdf_normalized, color='b')
+        # plt.hist(img.flatten(), bitdepth, [0, bitdepth], color='0.30')
+        plt.hist(img.flatten(), 256, [0, rng], color='0.30')
+        plt.xlim([0, rng])
+        plt.legend(('cdf', 'histogram'), loc='upper left')
+        plt.tight_layout()
+        if save_image_filename:
+            os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
+            plt.savefig(save_image_filename)  # save the figure to file
+        if autoclose == -1:
+            plt.close("all")
+        else:
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
+
+
 
     @staticmethod
     def plot_list_with_histogram(imglist, titlelist=[''], window_title='Plot', save_image_filename="",autoclose=0):
@@ -212,8 +274,6 @@ class View(object):
             plt.gcf().canvas.set_window_title(window_title)
         except:
             plt.gcf().canvas.setWindowTitle(window_title)
-            print("ERROR: Matplotlib versioning errors..")
-
 
         gridspec.GridSpec(2, cols)
         # print('gridspec figsize',2,cols,cols*8,8)
@@ -260,15 +320,19 @@ class View(object):
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        if autoclose>0:
-            try:
-                plt.show(block=False)
-                plt.pause(autoclose)  # 3 seconds, I use 1 usually
-            except:
-                print("interrupted while waiting.")
+        if autoclose == -1:
             plt.close("all")
         else:
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
 
     @staticmethod
     def plot_3dsurface(img, resize=0.15, save_image_filename="", autoclose=0):
@@ -284,23 +348,26 @@ class View(object):
             plt.gcf().canvas.set_window_title(window_title)
         except:
             plt.gcf().canvas.setWindowTitle(window_title)
-            print("ERROR: Matplotlib versioning errors..")
 
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
 
-        ax = fig.gca(projection='3d')
         ax.plot_surface(xx, yy, img, rstride=1, cstride=1, cmap=plt.cm.gray,
                         linewidth=0)
         if save_image_filename:
             os.makedirs(os.path.dirname(save_image_filename), exist_ok=True)
             plt.savefig(save_image_filename)  # save the figure to file
-        if autoclose>0:
-            try:
-                plt.show(block=False)
-                plt.pause(autoclose)  # 3 seconds, I use 1 usually
-            except:
-                print("interrupted while waiting.")
+        if autoclose == -1:
             plt.close("all")
         else:
-            plt.show()
+            if autoclose > 0:
+                try:
+                    plt.show(block=False)
+                    plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                except:
+                    print("Interrupted while waiting.")
+                plt.close("all")
+            else:
+                plt.show()
+            plt.close()
 
 
