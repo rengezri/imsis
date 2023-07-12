@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
 '''
-class analyze feature distribution test
 
+This file is part of IMSIS
+Licensed under the MIT license:
+http://www.opensource.org/licenses/MIT-license
+
+class analyze test
 '''
 
 import os
@@ -75,35 +79,28 @@ overlay, labels, markers, featurelist = ims.Analyze.FeatureProperties.get_featur
                                                                                                 fn),
                                                                                             colorscheme=ims.Analyze.FeatureProperties.ColorScheme.Random)
 
-autoclose = 4
-
 im_bbox = ims.Analyze.FeatureProperties.get_image_with_ellipses(labels, featurelist)
+
+autoclose = 4
 unique_timestamp = ims.Misc.uniquetimestamp()
 
-ims.Analyze.FeatureProperties.plot_feature_size_distribution(labels_size, featurelist_size,
-                                                             path_out + "FA_{}_size_dist_area".format(
-                                                                 unique_timestamp), autoclose=autoclose, num_bins=64,
-                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.Area,plotfigure=False)
+img_plot_area = ims.Analyze.FeatureProperties.plot_feature_distribution(labels_size, featurelist_size, autoclose=autoclose, num_bins=-1,
+                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.Area,
+                                                             plotfigure=True,pixelsize=1)
 
-ims.Analyze.FeatureProperties.plot_feature_size_distribution(labels_size, featurelist_size,
-                                                             path_out + "FA_{}_size_dist_d".format(
-                                                                 unique_timestamp), autoclose=autoclose, num_bins=64,
-                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.EquivalentDiameter)
+img_plot_eqdiam = ims.Analyze.FeatureProperties.plot_feature_distribution(labels_size, featurelist_size, autoclose=autoclose, num_bins=-1,
+                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.EquivalentDiameter,
+                                                             plotfigure=False, pixelsize=1)
 
-ims.Analyze.FeatureProperties.plot_feature_size_distribution(labels_size, featurelist_size,
-                                                             path_out + "FA_{}_size_dist_ar".format(
-                                                                 unique_timestamp), autoclose=autoclose, num_bins=64,
-                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio)
+img_plot_ar = ims.Analyze.FeatureProperties.plot_feature_distribution(labels_size, featurelist_size, autoclose=autoclose, num_bins=-1,
+                                                             sizedistributionxaxis=ims.Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio,
+                                                             plotfigure=False, pixelsize=1)
 
 ims.Analyze.FeatureProperties.plot_feature_size_ids(labels_size, featurelist_size,
                                                     path_out + "FA_{}_size_ids".format(unique_timestamp),
                                                     autoclose=autoclose)
 
-
-
 ims.Analyze.FeatureProperties.save_boundingboxes(labels, featurelist, path_out, max_features_per_page=50)
-
-
 
 labels_recolored_original_intensities = labels_original
 segmented_image_area = labels_size
@@ -125,6 +122,10 @@ labels_area_overlay = ims.Image.add(original_image, labels_area_col_jet, 0.7)
 labels_intensity_overlay = ims.Image.add(original_image, labels_intensity_col_jet, 0.7)
 unique_timestamp = ims.Misc.uniquetimestamp()
 
+ims.Image.save(img_plot_area, path_out + "FA_{}_plot_area.png".format(unique_timestamp))
+ims.Image.save(img_plot_eqdiam, path_out + "FA_{}_plot_eqdiam.png".format(unique_timestamp))
+ims.Image.save(img_plot_ar, path_out + "FA_{}_plot_ar.png".format(unique_timestamp))
+
 ims.Image.save(img, path_out + "FA_{}_source.png".format(unique_timestamp))
 ims.Image.save(segmented_image_intensity, path_out + "FA_{}_segm_intensity_out.png".format(unique_timestamp))
 ims.Image.save(segmented_image_area, path_out + "FA_{}_segm_area_out.png".format(unique_timestamp))
@@ -140,21 +141,16 @@ imgstitched = ims.Image.Tools.patches2image(
 
 ims.Image.save(imgstitched, path_out + "FA_{}_stitched.png".format(unique_timestamp))
 
+ims.Analyze.FeatureProperties.save_featureproperties(
+    path_out + r'FA_{}_feature size distribution.csv'.format(unique_timestamp),
+    featurelist)
 
-ims.Analyze.FeatureProperties.save_featureproperties(path_out + r'FA_{}_feature size distribution.csv'.format(unique_timestamp),
-                              featurelist)
-
-featurelist2 = ims.Analyze.FeatureProperties.load_featureproperties(path_out + r'FA_{}_feature size distribution.csv'.format(unique_timestamp))
+featurelist2 = ims.Analyze.FeatureProperties.load_featureproperties(
+    path_out + r'FA_{}_feature size distribution.csv'.format(unique_timestamp))
 
 im_bbox0 = (ims.Analyze.FeatureProperties.get_image_with_boundingboxes(labels, featurelist2))
 im_centermarkers = ims.Analyze.FeatureProperties.get_image_with_centermarkers(labels, featurelist2)
+
 ims.View.plot(im_centermarkers, autoclose=autoclose)
 ims.View.plot(im_bbox0, autoclose=autoclose)
-
-
-ims.View.plot_list([img, overlay, labels, im_bbox], ['Source', 'Image Overlay', 'Labels', 'Feature Roundness'],
-                   window_title='Feature size distribution', autoclose=autoclose)
-
-ims.View.plot_list([img, labels_intensity_gray, labels_area_col_jet, labels_area_overlay],
-                   ['Source', 'Segmented Source Intensity', 'Segmented by Area', 'Segmented by Area Overlay'],
-                   window_title='Recoloring', autoclose=autoclose)
+ims.View.plot(im_bbox, autoclose=autoclose) #ellipses
