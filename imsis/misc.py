@@ -14,6 +14,7 @@ import base64
 from datetime import datetime
 import re
 
+
 class Misc(object):
     @staticmethod
     def multipleof2(number):
@@ -28,8 +29,6 @@ class Misc(object):
         else:
             number -= remainder
         return int(number)
-
-
 
     @staticmethod
     def metadatavaluefromtag(tag, stringobject):
@@ -140,7 +139,7 @@ class Misc(object):
             outfile.write("\n".join(str(item).lstrip('[').rstrip(']') for item in itemlist))
 
     @staticmethod
-    def save_multicolumnlist(filename, itemlist,headerlist):
+    def save_multicolumnlist(filename, itemlist, headerlist):
         """Save list with array of string to each line
         add header with properties if enabled
 
@@ -151,7 +150,7 @@ class Misc(object):
 
         with open(filename, "w") as outfile:
             if headerlist:
-                outfile.write(','.join(str(item) for item in headerlist)+"\n")
+                outfile.write(','.join(str(item) for item in headerlist) + "\n")
             outfile.write("\n".join(str(item).lstrip('[').rstrip(']') for item in itemlist))
 
     @staticmethod
@@ -192,7 +191,7 @@ class Misc(object):
                     data.append(converted_values)
         else:
             print("Warning: multicolumn list file does not exist.")
-            data=None
+            data = None
         return data
 
     @staticmethod
@@ -236,7 +235,3 @@ class Misc(object):
                 else:
                     setattr(tar_obj, k, v)
         return tar_obj
-
-
-
-

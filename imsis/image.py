@@ -270,7 +270,7 @@ class Image(object):
         :Returns: image
         """
         bg_img=img0
-        fg_img=img0
+        fg_img=img1
 
         w, h, _ = bg_img.shape
         w1, h1, _ = fg_img.shape

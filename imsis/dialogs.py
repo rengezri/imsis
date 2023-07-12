@@ -1187,7 +1187,7 @@ class Dialogs(object):
     '''
 
     @staticmethod
-    def openfile_dialog(path='/', windowtext='Open File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)",
+    def openfile_dialog(path='/', windowtext='Open File Dialog', filter="Images (*.png *.jpg *.bmp *.tif *.tiff)",
                         alwaysontop=True):
         """
         Open file dialog
@@ -1207,7 +1207,7 @@ class Dialogs(object):
         return filename
 
     @staticmethod
-    def savefile_dialog(path='/', windowtext='Save File Dialog', filter="Images (*.png *.jpg *.bmp, *.tif, *.tiff)",
+    def savefile_dialog(path='/', windowtext='Save File Dialog', filter="Images (*.png *.jpg *.bmp *.tif *.tiff)",
                         alwaysontop=True):
         """
         Save file dialog
@@ -1656,7 +1656,7 @@ class Dialogs(object):
 
         def nothing(x):
             pass
-
+        img = ims.Image.Convert.to8bit(img)
         fx = 1024 / img.shape[1]
         if fx < 1:
             frame = cv.resize(img, None, fx=fx, fy=fx)
@@ -1719,7 +1719,7 @@ class Dialogs(object):
 
         def nothing(x):
             pass
-
+        img = ims.Image.Convert.to8bit(img)
         fx = 1024 / img.shape[1]
         if fx < 1:
             frame = cv.resize(img, None, fx=fx, fy=fx)
@@ -1835,6 +1835,7 @@ class Dialogs(object):
                 frame = img.copy()
             return frame
 
+        img = ims.Image.Convert.to8bit(img)
         frame = img.copy()
         orig = img.copy()
         maxarealimit = int(img.shape[0] * img.shape[1] * 0.1)

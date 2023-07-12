@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.ticker as ticker
 
-
 import numpy as np
 
 import imsis as ims
@@ -33,6 +32,7 @@ from scipy import fftpack
 import random as rng
 from collections import deque
 from enum import Enum
+import matplotlib.colors as mcolors
 
 rng.seed(12345)
 
@@ -899,26 +899,65 @@ class Analyze(object):
             """
             return -value if x < 0 else value
 
-        # img = cv.pyrDown(img)
+        '''
+        def rescale_unit(img, pixelsize):
+            hfw = (width * pixelsize)  # pixelsize is expressed in meters
+
+            scalebarwidth = int((width * 0.2) / 100) * 100
+
+            val = scalebarwidth * pixelsize
+            l = np.floor(np.log10(abs(val)))
+            if abs(l) > 24:
+                l = sign(l, value=24)
+            div, mod = divmod(l, 5 * 1)
+            sc = 10 ** (-l + mod)
+
+            scalebarwidth = val / pixelsize
+            scalebarwidth_pixelsize = scalebarwidth*pixelsize
+            text = Analyze.__pretty_unit(scalebarwidth_pixelsize)
+            return scalebarwidth, text
+        '''
+
+        import numpy as np
+
+        def rescale_unit(width, pixelsize):
+            # width = img.shape[1]  # get the image width
+
+            # Let's make the scalebar 20% of the full width
+            scalebarwidth_pixels = int(0.2 * width)
+
+            # Convert to real world measurements
+            scalebarwidth_meters = scalebarwidth_pixels * pixelsize
+
+            # Calculate the exponent and the scale value
+            exponent = np.floor(np.log10(scalebarwidth_meters))
+            scale_value = scalebarwidth_meters / 10 ** exponent
+
+            # Round to the nearest multiple of 1 or 5
+            if scale_value < 2.5:
+                rounded_value = 1
+            elif scale_value < 3:
+                rounded_value = 2
+            elif scale_value < 7.5:
+                rounded_value = 5
+            else:
+                rounded_value = 10
+
+            # Update the scalebar width with the rounded, readable value
+            scalebarwidth_meters_rounded = rounded_value * 10 ** exponent
+
+            # Adjust the scalebar width in pixels to match the rounded meters value
+            scalebarwidth_pixels_rounded = scalebarwidth_meters_rounded / pixelsize
+
+            # Get pretty representation of the scalebar width
+            text = Analyze.__pretty_unit(scalebarwidth_meters_rounded)
+
+            return int(scalebarwidth_pixels_rounded), text
+
         width, height = tuple(img.shape[1::-1])
-
         fontsize = int(height * 0.02)
-
         hfw = (width * pixelsize)  # pixelsize is expressed in meters
-
-        scalebarwidth = int((width * 0.2) / 100) * 100
-
-        val = scalebarwidth
-        l = np.floor(np.log10(abs(val)))
-        if abs(l) > 24:
-            l = sign(l, value=24)
-        div, mod = divmod(l, 3 * 1)
-        sc = 10 ** (-l + mod)
-        # scalebarwidth = float(1/sc)
-
-        print(sc, pixelsize, scalebarwidth)
-
-        text = Analyze.__pretty_unit(scalebarwidth * pixelsize)
+        scalebarwidth, text = rescale_unit(width, pixelsize)
 
         posx = int(width - width / 20)
         posy = int(height - height / 20)
@@ -2014,7 +2053,11 @@ class Analyze(object):
             Area = 1
             EquivalentDiameter = 2
             AspectRatio = 3
-
+            Solidity=4
+            Orientation=5
+            Perimeter=6
+            MeanIntensity=7
+            ConvexHullArea=8
 
         propertynames = ['Area',
                          'EquivalentDiameter',
@@ -2123,7 +2166,7 @@ class Analyze(object):
                             [area, equi_diameter, orientation, majoraxislength, minoraxislength, perimeter, xcoord,
                              ycoord,
                              solidity, bboxwidth, bboxheight, bboxarea, hull_area, minintensity, meanintensity,
-                             maxintensity, extent, aspect_ratio, 0,0,0, filename])
+                             maxintensity, extent, aspect_ratio, 0, 0, 0, filename])
                         cntsSorted_new.append(cntsSorted[i])
 
             # print("countsSorted_new: ", len(cntsSorted_new))
@@ -2154,13 +2197,13 @@ class Analyze(object):
                         else:
                             colvi = 0
                             coln = np.uint8(np.random.random_integers(0, 255, 3)).tolist()
-                    #featureproperties[i][colvalidx] = colvi
+                    # featureproperties[i][colvalidx] = colvi
 
-                    #coln2 = cv.applyColorMap(np.array([[coln]], dtype=np.uint8), cv.COLORMAP_JET)[0][0]
-                    coln2=coln
-                    featureproperties[i][colvalidxR] = coln2[2]/255.0
-                    featureproperties[i][colvalidxG] = coln2[1]/255.0
-                    featureproperties[i][colvalidxB] = coln2[0]/255.0
+                    # coln2 = cv.applyColorMap(np.array([[coln]], dtype=np.uint8), cv.COLORMAP_JET)[0][0]
+                    coln2 = coln
+                    featureproperties[i][colvalidxR] = coln2[2] / 255.0
+                    featureproperties[i][colvalidxG] = coln2[1] / 255.0
+                    featureproperties[i][colvalidxB] = coln2[0] / 255.0
 
                     coln = (int(coln[0]), int(coln[1]), int(coln[2]))  # numeric error without this line
                     # print(coln)
@@ -2262,7 +2305,6 @@ class Analyze(object):
 
             # cv version check
 
-
             if applydistancemap == True:
                 contours, markers = Analyze.FeatureProperties._contours_with_distance_map(orig, thresh,
                                                                                           distance_threshold)
@@ -2281,8 +2323,157 @@ class Analyze(object):
             return overlay, labels, markers, featureproperties
 
         @staticmethod
+        def size_to_color(size, size_min, size_max):
+            """Map size to color using a colormap.
+
+            Parameters:
+            size: The size value to map to a color.
+            size_min: The minimum size value.
+            size_max: The maximum size value.
+
+            Returns:
+            A color in RGB format.
+            """
+            # Normalize the size to the range [0, 1]
+            norm_size = (size - size_min) / (size_max - size_min)
+
+            # Get a colormap
+            colormap = plt.get_cmap("jet")
+
+            # Map the normalized size value to a color
+            color = colormap(norm_size)
+
+            # Convert the color to RGB format
+            color = mcolors.rgb2hex(color)
+
+            return color
+
+        @staticmethod
+        def plot_feature_distribution(im_labeled, featureproperties, autoclose=0, num_bins=32,
+                                           sizedistributionxaxis=SizeDistributionXAxis.Area, plotfigure=True,pixelsize=1):
+            """Plot the feature size distribution
+            :Parameters: labeled_image, featureproperties, path_out, autoclose
+            :Returns: NA
+            """
+
+            if len(featureproperties) > 0:
+
+                # Dictionary mapping XAxis options to their corresponding properties, labels, and unit multipliers
+                XAxisOptions = {
+                    Analyze.FeatureProperties.SizeDistributionXAxis.Area: ("Area", "Area [m]", pixelsize),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio: ("AspectRatio", "AspectRatio [-]", 1),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.EquivalentDiameter: (
+                    "EquivalentDiameter", "Diameter [m]", pixelsize),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.Solidity: ("Solidity", "Solidity [-]", 1),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.Orientation: (
+                    "Orientation", "Orientation [degrees]", 1),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.Perimeter: (
+                    "Perimeter", "Perimeter [m]", pixelsize),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.MeanIntensity: (
+                    "MeanIntensity", "Mean Intensity [A.U.]", 1),
+                    Analyze.FeatureProperties.SizeDistributionXAxis.ConvexHullArea: (
+                    "ConvexHullArea", "Convex Hull Area [m]", pixelsize),
+                }
+
+                # Check if the chosen XAxis option exists
+                if sizedistributionxaxis in XAxisOptions:
+                    # Get the properties, label, and unit multiplier for the chosen XAxis option
+                    property_name, xlabel, unitmultiplier = XAxisOptions[sizedistributionxaxis]
+
+                    # Get the index of the property
+                    areaidx = Analyze.FeatureProperties.propertynames.index(property_name)
+                else:
+                    raise ValueError(f"Unknown SizeDistributionXAxis: {sizedistributionxaxis}")
+
+
+                coloridxR = Analyze.FeatureProperties.propertynames.index("ColR")
+                coloridxG = Analyze.FeatureProperties.propertynames.index("ColG")
+                coloridxB = Analyze.FeatureProperties.propertynames.index("ColB")
+
+                arealist = []
+                color_values = []
+
+                for item in featureproperties:
+                    arealist.append(item[areaidx]*unitmultiplier)
+                    color_value = (item[coloridxR], item[coloridxG], item[coloridxB])
+                    color_values.append(color_value)
+
+                size_min = min(arealist)
+                size_max = max(arealist)
+                color_values = [Analyze.FeatureProperties.size_to_color(size, size_min, size_max) for size in arealist]
+
+                if plotfigure:
+                    gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
+                    fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
+                    axs[0].imshow(cv.cvtColor(im_labeled, cv.COLOR_BGR2RGB))
+                    axs[0].set_title("Image")
+                    current_axs = axs[1]
+                else:
+                    fig, current_axs = plt.subplots(figsize=(10, 10))
+
+
+                if num_bins == -1:  # If autobinning is requested
+                    # Apply Freedman-Diaconis rule
+                    iqr = np.subtract(*np.percentile(arealist, [75, 25]))
+                    bin_width = 2 * iqr * (len(arealist) ** (-1 / 3))
+                    num_bins = int(np.ceil((max(arealist) - min(arealist)) / bin_width))
+                    num_bins_int = np.linspace(min(arealist), max(arealist), num=num_bins)
+                else:  # If the number of bins is provided
+                    num_bins_int = np.linspace(min(arealist), max(arealist), num=num_bins)
+                    
+
+                #num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
+
+                # cmap_jet = cv.applyColorMap(np.arange(256, dtype=np.uint8), cv.COLORMAP_JET)
+
+                hist, bin_edges = np.histogram(arealist, bins=num_bins_int)
+
+                current_axs.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor='black', color=color_values,
+                                zorder=3)
+                current_axs.set_xlabel("{}".format(xlabel))
+                current_axs.set_ylabel("Counts")
+                current_axs.set_title("Distribution")
+                current_axs.set_yticks(np.arange(max(hist) + 1))  # Set y-axis ticks to integers
+                current_axs.margins(x=0)
+
+                if plotfigure:
+                    asp = np.diff(current_axs.get_xlim())[0] / np.diff(current_axs.get_ylim())[0]
+                    asp /= np.abs(np.diff(axs[0].get_xlim())[0] / np.diff(axs[0].get_ylim())[0])
+                    current_axs.set_aspect(asp)
+
+                current_axs.xaxis.set_major_locator(ticker.AutoLocator())
+                current_axs.xaxis.set_minor_locator(ticker.AutoMinorLocator())
+                current_axs.yaxis.set_major_locator(ticker.AutoLocator())
+                current_axs.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+
+                current_axs.grid(axis='x', color='0.95', zorder=0)
+
+                plt.tight_layout()
+                fig.canvas.draw()
+                image_from_plot = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+                out = image_from_plot.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+                if autoclose == -1:
+                    plt.close("all")
+                else:
+                    if autoclose > 0:
+                        try:
+                            plt.show(block=False)
+                            plt.pause(autoclose)  # 3 seconds, I use 1 usually
+                        except:
+                            print("Interrupted while waiting.")
+                        plt.close("all")
+                    else:
+                        plt.show()
+                    plt.close()
+            else:
+                print("Error: feature list empty.")
+            return out
+
+        '''
+                @staticmethod
         def plot_feature_size_distribution(im_labeled, featureproperties, filename, autoclose=0, num_bins=32,
-                                           sizedistributionxaxis=SizeDistributionXAxis.Area):
+                                           sizedistributionxaxis=SizeDistributionXAxis.Area, plotfigure=False):
             """Plot the feature size distribution
             :Parameters: labeled_image, featureproperties, path_out, autoclose
             :Returns: NA
@@ -2311,16 +2502,18 @@ class Analyze(object):
 
                 for item in featureproperties:
                     arealist.append(item[areaidx])
-
-
                     color_value = (item[coloridxR],item[coloridxG],item[coloridxB])
                     color_values.append(color_value)
 
-                gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
-                fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
+                if plotfigure == True:
+                    gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
+                    fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
+                    axs[0].imshow(cv.cvtColor(im_labeled, cv.COLOR_BGR2RGB))
+                    axs[0].set_title("Image")
+                else:
+                    fig, ax = plt.subplots(figsize=(10, 10))
+                    axs = [ax]  # create a list with single ax object
 
-                axs[0].imshow(cv.cvtColor(im_labeled, cv.COLOR_BGR2RGB))
-                axs[0].set_title("Image")
 
                 num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
 
@@ -2364,7 +2557,7 @@ class Analyze(object):
             else:
                 print("Error: feature list empty.")
 
-
+        '''
 
         @staticmethod
         def plot_feature_size_ids(im_labeled, featureproperties, filename, autoclose=0):
@@ -2383,7 +2576,7 @@ class Analyze(object):
             for item in featureproperties:
                 arealist.append(item[areaidx])
 
-                color_value = (item[coloridxR],item[coloridxG],item[coloridxB])
+                color_value = (item[coloridxR], item[coloridxG], item[coloridxB])
                 color_values.append(color_value)
 
             Y = np.array(arealist)
@@ -2435,7 +2628,7 @@ class Analyze(object):
                 plt.close()
 
         @staticmethod
-        def get_image_with_boundingboxes(image, featureproperties):
+        def get_image_with_boundingboxes(image, featureproperties, overlay=True):
             """Plot the feature size distribution
                 :Parameters: image, featureproperties
                 :Returns: image_with_boundingboxes
@@ -2446,6 +2639,9 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
+            if overlay==False:
+                height, width,chan = img.shape
+                img = np.zeros((height,width,chan), np.uint8)
 
             for item in featureproperties:
                 # Draw rectangle around segmented items.
@@ -2458,7 +2654,7 @@ class Analyze(object):
             return img
 
         @staticmethod
-        def get_image_with_centermarkers(image, featureproperties):
+        def get_image_with_centermarkers(image, featureproperties, overlay=True):
             """Plot the feature size distribution
                 :Parameters: image, featureproperties
                 :Returns: image_with_labels
@@ -2467,6 +2663,10 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
+            if overlay==False:
+                height, width,chan = img.shape
+                img = np.zeros((height,width,chan), np.uint8)
+
 
             for item in featureproperties:
                 x = int(item[xidx])
@@ -2476,7 +2676,7 @@ class Analyze(object):
             return img
 
         @staticmethod
-        def get_image_with_ellipses(image, featureproperties):
+        def get_image_with_ellipses(image, featureproperties, overlay=True):
             """Plot the feature size distribution
                 :Parameters: image, featureproperties, path_out
                 :Returns: image_with_ellipses
@@ -2488,6 +2688,10 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
+            if overlay==False:
+                height, width,chan = img.shape
+                img = np.zeros((height,width,chan), np.uint8)
+
 
             for item in featureproperties:
                 # Draw rectangle around segmented items.
@@ -2499,7 +2703,6 @@ class Analyze(object):
                 img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0, 0, 255),
                                  thickness=2)
             return img
-
 
         @staticmethod
         def save_boundingboxes(image, featureproperties, path_out, max_features_per_page=50):
@@ -2532,8 +2735,8 @@ class Analyze(object):
                 :Returns: none
             """
             ims.Misc.save_multicolumnlist(fn,
-                                      featurelist,
-                                      ims.Analyze.FeatureProperties.propertynames)
+                                          featurelist,
+                                          ims.Analyze.FeatureProperties.propertynames)
 
         @staticmethod
         def load_featureproperties(fn):
