@@ -29,9 +29,6 @@ im_rice_gray_noise = ims.Image.Process.gaussian_noise(im_rice_gray, 0.1)
 
 autoclose = 1.2
 
-
-
-
 info1 = ims.Image.unique_colours(im_blueberry)
 info2 = ims.Image.unique_colours(im_rice)
 ims.View.plot_list_with_histogram([im_blueberry, im_rice], ['cols {}'.format(info1), 'cols {}'.format(info2)],
@@ -40,12 +37,6 @@ ims.View.plot_list_with_histogram([im_blueberry, im_rice], ['cols {}'.format(inf
 img2_1 = ims.Image.add(im_blueberry, im_rice, 0.5)
 img2_2 = ims.Image.subtract(im_blueberry, im_rice)
 ims.View.plot_list([img2_1, img2_2], ['Add', 'Subtract'], window_title='Add / Subtract', autoclose=autoclose)
-
-img2_1 = ims.Image.Tools.add_blackmask(im_rice, [50, 50, 250, 250])
-ims.View.plot_list([im_rice, img2_1], ['Source', 'With black mask'], window_title='Add Mask', autoclose=autoclose)
-
-img2_1 = ims.Image.Tools.add_blackborder(im_rice, 25)
-ims.View.plot_list([im_rice, img2_1], ['Source', 'With black border'], window_title='Add Border', autoclose=autoclose)
 
 img2_1 = ims.Image.crop_percentage(im_rice, 0.5)
 img2_2 = ims.Image.zoom(im_rice, 1.5, 0.1, 0.1)
@@ -85,42 +76,16 @@ img2_2 = ims.Image.Adjust.histostretch_clahe(im_rice)
 ims.View.plot_list_with_histogram([im_rice, img2_1, img2_2], ['Source', 'Equalized Histogram', 'Clahe histogram'],
                                   window_title='Image Histogram Optimization', autoclose=autoclose)
 
-img3_1 = ims.Image.Tools.create_checkerboard()
-img3_2 = ims.Image.Tools.image_with_2_closeups(im_rice)
-img3_3 = ims.Image.Tools.squared(im_rice)
-ims.View.plot_list([img3_1, img3_2, img3_3], ['Checkerboard', '2close-ups', 'Squared'], window_title='Image Misc',
-                   autoclose=autoclose)
-
-# fisheye
-K = np.array(
-    [[781.3524863867165, 0.0, 794.7118000552183], [0.0, 779.5071163774452, 561.3314451453386], [0.0, 0.0, 1.0]])
-fx = 1200
-fy = 1200
-
-K = np.array(
-    [[fx, 0.0, img3_1.shape[0] * 0.5], [0.0, fy, img3_1.shape[1] * 0.5], [0.0, 0.0, 1.0]])
-D = np.array([[0.0], [0.0], [0.0], [1.0]])
-img1_1 = ims.Image.Tools.fisheye_correction(img3_1, K, D, DIM=(img3_1.shape[0], img3_1.shape[1]))
-ims.View.plot_list([img3_1, img1_1], ["Source", "Fisheye"], window_title='Image Fisheye', autoclose=autoclose)
-
 img2_1 = im_rice_gray
 mx, my, grad, theta = ims.Image.Process.directionalsharpness(img2_1)
 ims.View.plot_list([grad, theta], ["Directional sharpness gradient", "Theta"],
                    window_title='Image Directional Sharpness', autoclose=autoclose)
 
-img2_1 = im_blueberry
-img2_2 = ims.Image.Transform.rotate(img2_1, 5)
-img2_3 = ims.Image.Tools.imageregistration(img2_1, img2_2)
-ims.View.plot_list([img2_1, img2_2, img2_3], ['Source', 'Rotated', 'Image Registration of rotated image'],
-                   window_title='Image Transformation, Rotation, Registration', autoclose=autoclose)
+
 
 im_4 = ims.Image.Adjust.adjust_auto_whitebalance(im_blueberry)
 ims.View.plot_list([im_blueberry, im_4], ['Source', 'Auto whitebalance'], window_title="Auto Whitebalance",
                    autoclose=autoclose)
-
-im_4 = ims.Image.Tools.create_hsv_map()
-ims.Image.save(im_4 * 255, r'.\output\hsv_map.jpg')
-ims.Image.save_withuniquetimestamp(im_4 * 255)
 
 im_rice_gray_invert = ims.Image.Adjust.invert(im_rice_gray)
 img2_1 = ims.Image.Adjust.threshold_otsu(im_rice_gray_invert)
@@ -133,11 +98,9 @@ img2_1 = ims.Image.Process.gradient_removal(im_rice_gray, filtersize=513, sigmaX
 ims.View.plot_list([im_rice_gray, img2_1], ['Source', 'GradientRemoved'],
                    window_title='Image Edge Enhancement', autoclose=autoclose)
 
-
-im_rice_small = ims.Image.resize(im_rice,0.5)
-img2_1 = ims.Image.add_overlay(im_rice,im_rice_small)
+im_rice_small = ims.Image.resize(im_rice, 0.5)
+img2_1 = ims.Image.add_overlay(im_rice, im_rice_small)
 ims.View.plot_list([im_rice_gray, img2_1], ['Source', 'overlay'],
                    window_title='Overlay', autoclose=autoclose)
-
 
 print('Ready.')

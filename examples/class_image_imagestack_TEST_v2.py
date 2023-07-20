@@ -20,13 +20,14 @@ im_blueberry_noise = ims.Image.Process.poisson_noise(im_blueberry)
 
 img0 = im_blueberry_noise
 img1 = im_blueberry
+autoclose = 1
 
 s = ims.ImageStack.create_dummy_imagestack(img0, slices=20, add_noise=0.25, add_translations=0.01, add_rotations=0)
 ims.ImageStack.play(s, window_name="Dummy Imagestack")
 t = ims.ImageStack.integrate_images(s)
 u = ims.ImageStack.median_images(s)
 v = ims.ImageStack.average_images(s)
-ims.View.plot_list([t, u, v], ["Integrate imagestack", "Median imagestack", "Average imagestack"])
+ims.View.plot_list([t, u, v], ["Integrate imagestack", "Median imagestack", "Average imagestack"], autoclose=1)
 
 s = ims.ImageStack.create_dummy_imagestack(img0, slices=20, add_noise=0.25, add_translations=0.05, add_rotations=0)
 ims.ImageStack.play(s, window_name="Dummy Imagestack")
