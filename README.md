@@ -21,15 +21,7 @@ Typical applications would be:
 Requirements
 ------------
 
-IMSIS requires the following packages
-
-- Python >3.5
-- numpy 1.13.3
-- scipy 1.1.0
-- matplotlib 2.0.0
-- opencv_python 4.0.0.21
-- Pillow 6.2.0
-- PyQt5 5.15
+As in requirements file. Python > 3.5
 
 Requirements documentation
 --------------------------
