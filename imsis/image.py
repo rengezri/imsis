@@ -182,24 +182,6 @@ class Image(object):
         print("file saved. ", fn)
         cv.imwrite(fn, img)
 
-    '''
-    @staticmethod
-    def PSNR(img1, img2):
-        """Return peaksignal to noise ratio
-
-        :Parameters: image1, image2
-        :Returns: float
-        """
-        mse = np.mean((img1 - img2) ** 2)
-        if mse == 0:
-            return 100
-        PIXEL_MAX = 255.0
-        # print(np.sqrt(mse))
-        n = np.sqrt(mse)
-        # n=255/3.525
-        return 20 * np.log10(PIXEL_MAX / n)
-    '''
-
     # implemented twice remove the 2nd one
     @staticmethod
     def cut(img, center=[0, 0], size=[0, 0]):
@@ -240,17 +222,6 @@ class Image(object):
         out = cv.subtract(img0, img1)
         return out
 
-    '''
-    @staticmethod
-    def add(img0, img1):
-        """add 2 images
-        :Parameters: image1, image2
-        :Returns: image
-        """
-        out = cv.addWeighted(img0, 0.5, img1, 0.5, 0.0)
-        return out
-    '''
-
     @staticmethod
     def add(img0, img1, alpha=0.5):
         """add 2 images weighted (default alpha=0.5)
@@ -269,8 +240,8 @@ class Image(object):
         :Parameters: image1, image2, alpha
         :Returns: image
         """
-        bg_img=img0
-        fg_img=img1
+        bg_img = img0
+        fg_img = img1
 
         w, h, _ = bg_img.shape
         w1, h1, _ = fg_img.shape
@@ -282,14 +253,12 @@ class Image(object):
         fg_img1 = np.zeros((w, h, 3), np.uint8)
         bg_img1[0: 0 + bg_img.shape[0], 0: 0 + bg_img.shape[1]] = bg_img
         fg_img1[0: 0 + fg_img.shape[0], 0: 0 + fg_img.shape[1]] = fg_img
-        a=bg_img1
-        b=fg_img1
+        a = bg_img1
+        b = fg_img1
         beta = 1 - alpha
         gamma = 0
         out = cv.addWeighted(a, alpha, b, beta, gamma)
         return out
-
-
 
     @staticmethod
     def add_overlay(bg_img, fg_img):
@@ -375,27 +344,6 @@ class Image(object):
             out = len(np.unique(out_in_32U_1D))
         print(out)
         return out
-
-    '''
-    @staticmethod
-    def zoom(image0, factor=2):
-        """
-        zoom image, resize with factor n, crop in center to same size as original image
-        :Parameters: image0, zoom factor
-        :Returns: image
-        """
-        h = image0.shape[0]
-        w = image0.shape[1]
-        img = Image.resize(image0,factor)
-        x0 = int(factor*w/4)
-        y0 = int(factor*h/4)
-        x1 = x0+w
-        y1 = y0+h
-        print(x0,y0,x1,y1,w,h,img.shape[0],img.shape[1])
-
-        img = Image.crop(img,x0,y0,x1,y1)
-        return img
-    '''
 
     @staticmethod
     def zoom(image0, factor=2, cx=0.5, cy=0.5):
@@ -658,234 +606,6 @@ class Image(object):
             out = np.uint8(dst)
             return out, kernel
 
-        '''
-        def FFT_highpass(img, maskradius=8, maskblur=19):
-            dft = np.fft.fft2(img, axes=(0, 1))
-            dft_shift = np.fft.fftshift(dft)
-            mag = np.abs(dft_shift)
-            spec = np.log(mag) / 20
-            radius = maskradius
-            mask = np.zeros_like(img, dtype=np.float32)
-            cy = mask.shape[0] // 2
-            cx = mask.shape[1] // 2
-            cv.circle(mask, (cx, cy), radius, (1, 1, 1), -1)[0]
-            mask = 1 - mask
-
-            mask = 1 + 0.5 * mask # high boost filter (sharpening) = 1 + fraction of high pass filter
-
-            if maskblur > 0:
-                mask2 = cv.GaussianBlur(mask, (maskblur, maskblur), 0)
-                dft_shift_masked2 = np.multiply(dft_shift, mask2)
-                back_ishift_masked2 = np.fft.ifftshift(dft_shift_masked2)
-                img_filtered2 = np.fft.ifft2(back_ishift_masked2, axes=(0, 1))
-                out = np.abs(img_filtered2).clip(0, 255).astype(np.uint8)
-
-            else:
-                dft_shift_masked = np.multiply(dft_shift, mask)
-                back_ishift_masked = np.fft.ifftshift(dft_shift_masked)
-                img_filtered = np.fft.ifft2(back_ishift_masked, axes=(0, 1))
-                out = np.abs(img_filtered).clip(0, 255).astype(np.uint8)
-                mask2= mask
-            return out, mask2
-
-        def FFT_lowpass(img, maskradius=8, maskblur=19):
-            dft = np.fft.fft2(img, axes=(0, 1))
-            dft_shift = np.fft.fftshift(dft)
-            mag = np.abs(dft_shift)
-            spec = np.log(mag) / 20
-            radius = maskradius
-            mask = np.zeros_like(img, dtype=np.float32)
-            cy = mask.shape[0] // 2
-            cx = mask.shape[1] // 2
-            cv.circle(mask, (cx, cy), radius, (255, 255, 255), -1)[0]
-
-            if maskblur > 0:
-                mask2 = cv.GaussianBlur(mask, (maskblur, maskblur), 0)
-                dft_shift_masked2 = np.multiply(dft_shift, mask2)/ 255
-                back_ishift_masked2 = np.fft.ifftshift(dft_shift_masked2)
-                img_filtered2 = np.fft.ifft2(back_ishift_masked2, axes=(0, 1))
-                out = np.abs(img_filtered2).clip(0, 255).astype(np.uint8)
-
-            else:
-                dft_shift_masked = np.multiply(dft_shift, mask)/ 255
-                back_ishift_masked = np.fft.ifftshift(dft_shift_masked)
-                img_filtered = np.fft.ifft2(back_ishift_masked, axes=(0, 1))
-                out = np.abs(img_filtered).clip(0, 255).astype(np.uint8)
-                mask2 = mask
-            return out,mask2
-        '''
-
-        '''
-        @staticmethod
-        def FFT_lowpass(img, radius=16, lpType=2, n=2):
-            """Lowpass filter in frequency domain
-
-            radius kernel size
-            lpType: 0-ideal, 1 butterworth, 2 gaussian
-
-            :Parameters: image, radius, lptype, n
-            :Returns: image, mask
-            """
-
-            def createLPFilter(shape, center, radius, lpType=2, n=2):
-                rows, cols = shape[:2]
-                r, c = np.mgrid[0:rows:1, 0:cols:1]
-                c -= center[0]
-                r -= center[1]
-                d = np.power(c, 2.0) + np.power(r, 2.0)
-                lpFilter_matrix = np.zeros((rows, cols), np.float32)
-                if lpType == 0:  # ideal low-pass filter
-                    lpFilter = np.copy(d)
-                    lpFilter[lpFilter < pow(radius, 2.0)] = 1
-                    lpFilter[lpFilter >= pow(radius, 2.0)] = 0
-                elif lpType == 1:  # Butterworth low-pass filter
-                    lpFilter = 1.0 / (1 + np.power(np.sqrt(d) / radius, 2 * n))
-                elif lpType == 2:  # Gaussian low pass filter
-                    lpFilter = np.exp(-d / (2 * pow(radius, 2.0)))
-                lpFilter_matrix[:, :] = lpFilter
-                return lpFilter_matrix
-
-            dft_shift, imgfft = Image.Process.FFT(img)
-            cy = dft_shift.shape[0] // 2
-            cx = dft_shift.shape[1] // 2
-            mask = createLPFilter(dft_shift.shape, (cx, cy), radius=radius, lpType=lpType, n=n)
-            if len(img.shape) == 3:
-                mask = Image.Convert.toRGB(mask)
-            ifft = np.multiply(dft_shift, mask)
-            out = Image.Process.IFFT(ifft)
-
-            return out, mask
-
-        @staticmethod
-        def FFT_highpass(img, radius=16, lpType=2, n=2):
-            """Highpass filter in frequency domain
-
-            radius kernel size
-            lpType: 0-ideal, 1 butterworth, 2 gaussian
-
-            :Parameters: image, radius, lptype, n
-            :Returns: image, mask
-            """
-
-            def createHPFilter(shape, center, radius, lpType=2, n=2):
-                rows, cols = shape[:2]
-                r, c = np.mgrid[0:rows:1, 0:cols:1]
-                c -= center[0]
-                r -= center[1]
-                d = np.power(c, 2.0) + np.power(r, 2.0)
-                lpFilter_matrix = np.zeros((rows, cols), np.float32)
-                if lpType == 0:  # Ideal high pass filter
-                    lpFilter = np.copy(d)
-                    lpFilter[lpFilter < pow(radius, 2.0)] = 0
-                    lpFilter[lpFilter >= pow(radius, 2.0)] = 1
-                elif lpType == 1:  # Butterworth Highpass Filters
-                    lpFilter = 1.0 - 1.0 / (1 + np.power(np.sqrt(d) / radius, 2 * n))
-                elif lpType == 2:  # Gaussian Highpass Filter
-                    lpFilter = 1.0 - np.exp(-d / (2 * pow(radius, 2.0)))
-                lpFilter_matrix[:, :] = lpFilter
-                return lpFilter_matrix
-
-            dft_shift, imgfft = Image.Process.FFT(img)
-            cy = dft_shift.shape[0] // 2
-            cx = dft_shift.shape[1] // 2
-            mask = createHPFilter(dft_shift.shape, (cx, cy), radius=radius, lpType=lpType, n=n)
-            if len(img.shape) == 3:
-                mask = Image.Convert.toRGB(mask)
-            ifft = np.multiply(dft_shift, mask)
-            out = Image.Process.IFFT(ifft)
-
-            return out, mask
-
-        @staticmethod
-        def FFT_bandpass(img, bandcenter=32, bandwidth=16, lpType=2, n=2):
-            """Bandpass filter in frequency domain
-
-            radius kernel size
-            lpType: 0-ideal, 1 butterworth, 2 gaussian
-
-            :Parameters: image, bandcenter, bandwidth, lptype, n
-            :Returns: image, mask
-            """
-
-            def createBPFilter(shape, center, bandCenter, bandWidth, lpType=2, n=2):
-                rows, cols = shape[:2]
-                r, c = np.mgrid[0:rows:1, 0:cols:1]
-                c -= center[0]
-                r -= center[1]
-                d = np.sqrt(np.power(c, 2.0) + np.power(r, 2.0))
-                lpFilter_matrix = np.zeros((rows,cols), np.float32)
-                if lpType == 0:  # Ideal bandpass filter
-                    lpFilter = np.copy(d)
-                    lpFilter[:, :] = 1
-                    lpFilter[d > (bandCenter + bandWidth / 2)] = 0
-                    lpFilter[d < (bandCenter - bandWidth / 2)] = 0
-                elif lpType == 1:  # Butterworth bandpass filter
-                    if bandCenter ==0:
-                        bandCenter=1
-                    lpFilter = 1.0 - 1.0 / (1 + np.power(d * bandWidth / (d - pow(bandCenter, 2)), 2 * n))
-                elif lpType == 2:  # Gaussian bandpass filter
-                    if bandWidth ==0:
-                        bandWidth=1
-                    lpFilter = np.exp(-pow((d - pow(bandCenter, 2)) / (d * bandWidth), 2))
-                lpFilter_matrix[:, :] = lpFilter
-                return lpFilter_matrix
-
-            dft_shift, imgfft = Image.Process.FFT(img)
-            cy = dft_shift.shape[0] // 2
-            cx = dft_shift.shape[1] // 2
-            mask = createBPFilter(dft_shift.shape, (cx, cy), bandCenter=bandcenter, bandWidth=bandwidth, lpType=lpType,
-                                  n=n)
-            if len(img.shape) == 3:
-               mask = Image.Convert.toRGB(mask)
-            #print(mask.dtype,dft_shift.dtype)
-            ifft = np.multiply(dft_shift, mask)
-            out = Image.Process.IFFT(ifft)
-
-            return out, mask
-
-        @staticmethod
-        def FFT_bandstop(img, bandcenter=32, bandwidth=16, lpType=2, n=2):
-            """Bandstop filter in frequency domain
-
-            radius kernel size
-            lpType: 0-ideal, 1 butterworth, 2 gaussian
-
-            :Parameters: image, bandcenter, bandwidth, lptype, n
-            :Returns: image, mask
-            """
-
-            def createBRFilter(shape, center, bandCenter, bandWidth, lpType=2, n=2):
-                rows, cols = shape[:2]
-                r, c = np.mgrid[0:rows:1, 0:cols:1]
-                c -= center[0]
-                r -= center[1]
-                d = np.sqrt(np.power(c, 2.0) + np.power(r, 2.0))
-                lpFilter_matrix = np.zeros((rows, cols), np.float32)
-                if lpType == 0:  # Ideal band stop filter
-                    lpFilter = np.copy(d)
-                    lpFilter[:, :] = 0
-                    lpFilter[d > (bandCenter + bandWidth / 2)] = 1
-                    lpFilter[d < (bandCenter - bandWidth / 2)] = 1
-                elif lpType == 1:  # Butterworth band stop filter
-                    lpFilter = 1.0 / (1 + np.power(d * bandWidth / (d - pow(bandCenter, 2)), 2 * n))
-                elif lpType == 2:  # Gaussian band stop filter
-                    lpFilter = 1 - np.exp(-pow((d - pow(bandCenter, 2)) / (d * bandWidth), 2))
-                lpFilter_matrix[:, :] = lpFilter
-                return lpFilter_matrix
-
-            dft_shift, imgfft = Image.Process.FFT(img)
-            cy = dft_shift.shape[0] // 2
-            cx = dft_shift.shape[1] // 2
-            mask = createBRFilter(dft_shift.shape, (cx, cy), bandCenter=bandcenter, bandWidth=bandwidth, lpType=lpType,
-                                  n=n)
-            if len(img.shape) == 3:
-                mask = Image.Convert.toRGB(mask)
-            ifft = np.multiply(dft_shift, mask)
-            out = Image.Process.IFFT(ifft)
-
-            return out, mask
-        '''
-
         def pencilsketch(img):
             """Apply a pencil sketch filter to a grayscale image
 
@@ -935,29 +655,6 @@ class Image(object):
             noise_img += noise
             noise_img = np.clip(noise_img, 0, 255).astype(np.uint8)
             return noise_img
-
-        '''
-        #slow method
-        @staticmethod
-        def salt_and_pepper_noise(image, prob=0.01):
-            """Add salt and pepper noise
-
-            :Parameters: image, sigma=0.01
-            :Returns: image
-            """
-            output = np.zeros(image.shape, np.uint8)
-            thres = 1 - prob
-            for i in range(image.shape[0]):
-                for j in range(image.shape[1]):
-                    rdn = random.random()
-                    if rdn < prob:
-                        output[i][j] = 0
-                    elif rdn > thres:
-                        output[i][j] = 255
-                    else:
-                        output[i][j] = image[i][j]
-            return output
-        '''
 
         def salt_and_pepper_noise(img, prob=0.01):
             """Add salt and pepper noise to an image
@@ -1063,7 +760,6 @@ class Image(object):
             img3 = cv.merge([b2, g1, r0])
             return img3
 
-
         @staticmethod
         def gradient_removal(img, filtersize=513, sigmaX=32):
             """Remove Image gradient
@@ -1127,31 +823,6 @@ class Image(object):
             cleaned[~black_mask] = img[~black_mask]
             return cleaned
 
-        '''
-        @staticmethod
-        def noise_reduction_thresholded(img):
-            """Replace black pixels by the median of neighbours
-
-            :Parameters: image
-            :Returns: image
-            """
-
-            threshold = 1
-            _, thresh = cv.threshold(cv.cvtColor(img, cv.COLOR_BGR2GRAY), threshold, 255, cv.THRESH_BINARY)
-
-            # Find the contours of the noisy regions
-            contours, _ = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-            # Draw a black mask on the noisy regions
-            mask = np.zeros_like(img)
-            cv.drawContours(mask, contours, -1, (0, 0, 0), -1)
-
-            # Remove the noisy regions by applying the mask on the image
-            result = cv.bitwise_and(img, mask)
-
-            return result
-        '''
-
         @staticmethod
         def remove_islands_colour(img, kernel=13):
             """Remove islands in a colour image using a kernel
@@ -1185,14 +856,13 @@ class Image(object):
                 The modified image.
             """
             target_bgr_color = \
-            cv.applyColorMap(np.array([[source_color[0]]], dtype=np.uint8), colormap_target)[0][0]
+                cv.applyColorMap(np.array([[source_color[0]]], dtype=np.uint8), colormap_target)[0][0]
 
             # Find pixels with the target grayscale color and replace them with the colormap value
             mask = np.all(image == source_color[0], axis=-1)
             image[mask] = target_bgr_color
 
             return image
-
 
         @staticmethod
         def colormap_jet(img):
@@ -1204,18 +874,6 @@ class Image(object):
             im_color = cv.applyColorMap(img, cv.COLORMAP_JET)
             return im_color
 
-        '''
-        @staticmethod
-        def falsecolor_rainbow(img):
-            """False color rainbow
-
-            :Parameters: image
-            :Returns: image
-            """
-            im_color = cv.applyColorMap(img, cv.COLORMAP_RAINBOW)
-            return im_color
-        '''
-
         @staticmethod
         def colormap_hot(img):
             """False color rainbow
@@ -1225,18 +883,6 @@ class Image(object):
             """
             im_color = cv.applyColorMap(img, cv.COLORMAP_HOT)
             return im_color
-
-        '''
-        @staticmethod
-        def falsecolor_hsv(img):
-            """False color rainbow
-
-            :Parameters: image
-            :Returns: image
-            """
-            im_color = cv.applyColorMap(img, cv.COLORMAP_HSV)
-            return im_color
-        '''
 
         def matplotlib_to_opencv_colormap(cmap):
             """Convert a Matplotlib colormap to an OpenCV colormap.
@@ -1266,10 +912,6 @@ class Image(object):
             im_color = cv.LUT(img, colormap)
             return im_color
 
-
-
-
-
         @staticmethod
         def grayscale_to_color(img, color):
             """ colorize a grayscale image by a given color
@@ -1292,7 +934,6 @@ class Image(object):
             color_img = color_img.astype(np.uint8) * gray_img[:, :, np.newaxis].astype(np.uint8)
 
             return color_img
-
 
         @staticmethod
         def RGBtoLAB(source, target):
@@ -1344,8 +985,6 @@ class Image(object):
 
             # return the color transferred image
             return transfer
-
-
 
     class Adjust:
         @staticmethod
@@ -1436,19 +1075,6 @@ class Image(object):
                 lab = cv.merge((l2, a, b))  # merge channels
                 img = cv.cvtColor(lab, cv.COLOR_LAB2BGR)  # convert from LAB to BGR
             return img
-
-        '''
-        @staticmethod
-        def histostretch_equalized(img):
-            """Apply a equalize histogram filter (8-bit images only!)
-
-            :Parameters: image
-            :Returns: image
-            """
-            # img = cv.pyrDown(img)
-            equ = cv.equalizeHist(img)
-            return equ
-        '''
 
         @staticmethod
         def histostretch_equalized(img):
@@ -1812,56 +1438,6 @@ class Image(object):
                     img_Thinned[x][y] = 0
             return img_Thinned
 
-        '''
-        @staticmethod
-        def zhang_suen_thinning2(img):
-
-            def neighbours_vec(image):
-                return image[2:, 1:-1], image[2:, 2:], image[1:-1, 2:], image[:-2, 2:], image[:-2, 1:-1], image[:-2,
-                                                                                                          :-2], image[
-                                                                                                                1:-1,
-                                                                                                                :-2], image[
-                                                                                                                      2:,
-                                                                                                                      :-2]
-
-            def transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9):
-                return ((P3 - P2) > 0).astype(int) + ((P4 - P3) > 0).astype(int) + \
-                       ((P5 - P4) > 0).astype(int) + ((P6 - P5) > 0).astype(int) + \
-                       ((P7 - P6) > 0).astype(int) + ((P8 - P7) > 0).astype(int) + \
-                       ((P9 - P8) > 0).astype(int) + ((P2 - P9) > 0).astype(int)
-
-            def zhangSuen_vec(image, iterations):
-                for iter in range(1, iterations):
-                    # step 1
-                    P2, P3, P4, P5, P6, P7, P8, P9 = neighbours_vec(image)
-                    condition0 = image[1:-1, 1:-1]
-                    condition4 = P4 * P6 * P8
-                    condition3 = P2 * P4 * P6
-                    condition2 = transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9) == 1
-                    condition1 = (2 <= P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9) * (
-                                P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 <= 6)
-                    cond = (condition0 == 1) * (condition4 == 0) * (condition3 == 0) * (condition2 == 1) * (
-                                condition1 == 1)
-                    changing1 = np.where(cond == 1)
-                    image[changing1[0] + 1, changing1[1] + 1] = 0
-                    # step 2
-                    P2, P3, P4, P5, P6, P7, P8, P9 = neighbours_vec(image)
-                    condition0 = image[1:-1, 1:-1]
-                    condition4 = P2 * P6 * P8
-                    condition3 = P2 * P4 * P8
-                    condition2 = transitions_vec(P2, P3, P4, P5, P6, P7, P8, P9) == 1
-                    condition1 = (2 <= P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9) * (
-                                P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 <= 6)
-                    cond = (condition0 == 1) * (condition4 == 0) * (condition3 == 0) * (condition2 == 1) * (
-                                condition1 == 1)
-                    changing2 = np.where(cond == 1)
-                    image[changing2[0] + 1, changing2[1] + 1] = 0
-                return image
-
-            image = zhangSuen_vec(img, 1)
-            return image
-        '''
-
         @staticmethod
         def morphology_erode(img, kernel=5):
             """Morphology filter - erode
@@ -2102,9 +1678,6 @@ class Image(object):
             img = img.astype('uint8') * 255
             return img
 
-
-
-
     class FilterKernels:
 
         @staticmethod
@@ -2215,12 +1788,6 @@ class Image(object):
         def butterworth_bandpass_kernel(img, D0=5, W=10):
             kernel = 1.0 - Image.FilterKernels.butterworth_bandstop_kernel(img, D0, W)
             return kernel
-
-        '''
-        def convert_kernel_to_image(kernel):
-            out = np.dstack((kernel, np.zeros(kernel.shape[:-1])))
-            return out
-        '''
 
     class Tools:
         # combined sequences
@@ -2942,48 +2509,6 @@ class Image(object):
             :Returns: image
             """
 
-            '''
-            def histogram(img, range=None, step=0.1, order=None, smoothed=False, smoothing_order=1, mask=None):
-                round_min = lambda x, step: round(x - x % step, 3)
-                round_max = lambda x, step: round(x - x % step + step, 3)
-
-                if not mask is None:
-                    unmasked = np.where(mask != 0.0)
-                    unmasked = list(zip(*unmasked))
-                    data = img
-                    data = np.array([data[y, x] for y, x in unmasked])
-                else:
-                    # data = img.data.flatten()
-                    data = img.flatten()
-
-                if range is None:
-                    range = [round_min(data.min(), step), round_max(data.max(), step)]
-                elif len(range) == 2:
-                    range = [round_min(range[0], step), round_max(range[1], step)]
-                else:
-                    raise ValueError
-                bins = int((range[1] - range[0]) / step)
-                hist, hist_bins = np.histogram(data, bins=bins, range=range)
-                if smoothed:
-                    kernel = cv2.getGaussianKernel(smoothing_order, 0)[:, 0]
-                    hist = np.convolve(hist, kernel, mode='same')
-                if order is None:
-                    order = int(round(1 / step))
-                peaks = signal.argrelmax(hist, order=order)[0]
-
-                return hist, hist_bins[:-1], peaks
-
-            def heightcorrection0(src, makeItZero=False, peak_num=21, step=0.1):
-                dst = src.copy()
-                hist, bins, peak_idx = histogram(dst, step=step)
-                peak = bins[peak_idx[peak_num - 1]]
-                dst = dst - peak
-                if makeItZero:
-                    black = np.zeros_like(dst, dtype='uint8')
-                    dst = np.where(dst >= 0.0, dst, black)
-                return dst
-            '''
-
             col = Image.Tools._get_dominant_color(img)
             img2 = Image.Convert.toGray(img)
             img2 = cv.normalize(img2, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
@@ -3037,3 +2562,26 @@ class Image(object):
             colorbar = np.repeat(gradient, 50, axis=0)
             colorbar = Image.Convert.toRGB(colorbar)
             return colorbar
+
+        @staticmethod
+        def create_focus_stack_simple(images):
+            """Create a simple focus stack
+
+            :Parameters: image_list
+            :returns: output_image
+            """
+
+            def do_lap(image, kernel_size=5, blur_size=5):
+                blurred = cv.GaussianBlur(image, (blur_size, blur_size), 0)
+                return cv.Laplacian(blurred, cv.CV_64F, ksize=kernel_size)
+
+            laplacians = [do_lap(cv.cvtColor(image, cv.COLOR_BGR2GRAY)) for image in images]
+            output = np.zeros_like(images[0])
+
+            abs_laplacians = np.absolute(laplacians)
+            max_indices = np.argmax(abs_laplacians, axis=0)
+
+            for i in range(len(images)):
+                output[max_indices == i] = images[i][max_indices == i]
+
+            return output

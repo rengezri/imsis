@@ -86,9 +86,9 @@ class PropertyGridWidget(QtWidgets.QDialog):
     _instances = set()  # Class level set to hold references to window instances
 
     def __init__(self,
-            properties,
-            text,
-            info):
+                 properties,
+                 text,
+                 info):
         QtWidgets.QDialog.__init__(self)
         self._instances.add(self)  # Add the instance to the set
 
@@ -268,144 +268,10 @@ class PropertyGridWidget(QtWidgets.QDialog):
         self.close()
 
 
-'''
-class PropertyGridWidget(QtWidgets.QWidget):
-    def __init__(self, properties, text, info):
-        super().__init__()
-        self.properties = properties
-        self.setWindowTitle(text)
-        self.table = QtWidgets.QTableWidget(self)
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)  # stop qtimer assertion when closing
-
-        # Grid Layout
-        grid = QtWidgets.QGridLayout()
-        self.setLayout(grid)
-
-        # Table setup
-        self.setup_table()
-
-        # QLabel and QPushButton
-        Qinfo = QtWidgets.QLabel(info)
-        self.okButton = QtWidgets.QPushButton("OK")  # change here
-
-        # Add Widgets to Grid
-        grid.addWidget(self.table, 0, 0)
-        if len(info) != 0:
-            grid.addWidget(Qinfo, 1, 0)
-        grid.addWidget(self.okButton, 2, 0)  # and here
-
-        self.okButton.clicked.connect(self.onButtonClicked)
-        self.show()
-
-    def setup_table(self):
-        self.table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.table.setRowCount(len(self.properties))
-        self.table.setColumnCount(2)
-        self.table.horizontalHeader().setVisible(False)
-        self.table.verticalHeader().setVisible(False)
-
-        # Enter data onto Table
-        for i, item in enumerate(self.properties):
-            self.table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
-            self.table.item(i, 0).setFlags(QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.populate_table_cell(i, item[1])
-
-        self.table.resizeColumnsToContents()
-        self.table.resizeRowsToContents()
-
-    def populate_table_cell(self, i, item):
-        if item in ['True', 'False']:
-            self.create_checkbox(i, item)
-        elif item[0] == '{' and item[-1] == '}':
-            self.create_combobox(i, item)
-        else:
-            self.table.setItem(i, 1, QtWidgets.QTableWidgetItem(item))
-
-    def create_checkbox(self, i, item):
-        checkbox = QtWidgets.QCheckBox()
-        checkbox.setChecked(item == 'True')
-        self.table.setCellWidget(i, 1, checkbox)
-        checkbox.clicked.connect(self.onCheckBoxStateChanged)
-
-    def create_combobox(self, i, item):
-        combo = QtWidgets.QComboBox()
-        dct = eval(item)
-        combo.setStyleSheet("QComboBox {background-color: white;font: 12px;}")
-        for t in dct.keys():
-            combo.addItem(t)
-        self.table.setCellWidget(i, 1, combo)
-        combo.currentIndexChanged.connect(self.onComboIndexChanged)
-
-    def onCheckBoxStateChanged(self):
-        checkbox = self.sender()
-        ix = self.table.indexAt(checkbox.pos())
-        row = ix.row()
-        self.properties[row][1] = str(checkbox.isChecked())
-
-    def onComboIndexChanged(self, value):
-        row = self.table.currentRow()
-        dct = eval(self.properties[row][1])
-        actkey = list(dct.keys())[value]
-
-        for key, val in dct.items():
-            dct[key] = False
-            if key == actkey:
-                dct[key] = True
-
-        self.properties[row][1] = str(dct)
-
-    def closeEvent(self, event):
-        """Reimplementation of the close event handler."""
-        # Cleanup code here...
-        # This will be executed when the window is closing.
-        self.disconnect_signals()
-        self.delete_widgets()
-        event.accept()
-
-    def delete_widgets(self):
-        # Method to delete widget and its children
-        for widget in self.findChildren(QtWidgets.QWidget):
-            widget.deleteLater()
-
-        self.deleteLater()
-
-    def disconnect_signals(self):
-        try:
-            self.okButton.clicked.disconnect(self.onButtonClicked)
-            # add other disconnect calls for other connected signals
-            # NOTE: Here, you will also need to disconnect signals for checkbox and combobox.
-            #       Ensure each widget that uses signals has an instance variable (like self.okButton) to allow for proper disconnection.
-        except TypeError:
-            # disconnect raises a TypeError if the signal was not connected
-            pass
-
-    def onButtonClicked(self):
-        allRows = self.table.rowCount()
-        print("\nstart")
-        for row in range(0, allRows):
-            twi0_item = self.table.item(row, 0)
-            twi1_item = self.table.item(row, 1)
-            if twi0_item is not None and twi1_item is not None:
-                twi0 = twi0_item.text()
-                twi1 = twi1_item.text()
-                self.properties[row][0] = twi0
-                self.properties[row][1] = twi1
-        print("end\n")
-        self.choices = self.properties
-
-        # Close the widget properly
-        self.close()
-'''
-
-'''
---------------
-'''
-
-
 class MultiButtonWidget(QtWidgets.QDialog):
     _instances = set()
 
-    def __init__(self, listbuttons,name,info):
+    def __init__(self, listbuttons, name, info):
         QtWidgets.QDialog.__init__(self)
         self._instances.add(self)
 
@@ -433,6 +299,7 @@ class MultiButtonWidget(QtWidgets.QDialog):
         self.buttonpressed = data
         # sys.exit(0) #sysexit is slow, while close is fast
         self.close()
+
 
 class CheckListWidget(QtWidgets.QDialog):
     def __init__(self, name, datalist, info):
@@ -507,6 +374,7 @@ class CheckListWidget(QtWidgets.QDialog):
             item = self.model.item(i)
             item.setCheckState(QtCore.Qt.Unchecked)
 
+
 class RadioButtonListWidget(QtWidgets.QDialog):
     _instances = set()
 
@@ -572,9 +440,9 @@ class ComboBoxWidget(QtWidgets.QDialog):
     _instances = set()  # Class level set to hold references to window instances
 
     def __init__(self,
-            name,
-            datalist,
-            info):
+                 name,
+                 datalist,
+                 info):
         QtWidgets.QDialog.__init__(self)
         self._instances.add(self)  # Add the instance to the set
 
@@ -645,15 +513,6 @@ class ComboBoxWidget(QtWidgets.QDialog):
         self.reject()
 
 
-'''
-if __name__ == "__main__":
-    app = QApplication([])
-    w = MainWidget()
-    w.show()
-    app.exec_()
-'''
-
-
 class ImageListViewWidget(QtWidgets.QListWidget):
     _instances = set()  # Class level set to hold references to window instances
     dropped = QtCore.Signal(list)
@@ -692,7 +551,6 @@ class ImageListViewWidget(QtWidgets.QListWidget):
 
 
 class ImageListViewForm(QtWidgets.QDialog):
-
 
     def __init__(self, parent=None, title="Drag and drop image dialog"):
         super(ImageListViewForm, self).__init__(parent)
@@ -1099,93 +957,6 @@ class Dialogs(object):
             print('out: ', properties)
         return properties
 
-    '''
-    @staticmethod
-    def dialog_propertygrid(properties, windowtext='Properties', verbose=True, info="", alwaysontop=True):
-        """Simple property grid
-
-        :Parameters: property_dictionary,text
-        :Returns: property_dictionary
-
-        .. code-block:: python
-
-            properties = {'rows': 3, 'cols':3}
-            propertiesafter = em.Dialogs.dialog_propertygrid(properties)
-            print(properties)
-            print(propertiesafter)
-
-        """
-        # workaround to avoid multiple instances of QtWidget causing memory leaks, required for QT5.14.2, better method available?
-        app = QtCore.QCoreApplication.instance()
-        if app is None:
-            app = QtWidgets.QApplication(sys.argv)
-
-
-
-        data = []
-        datatypes = []
-
-        # avoid triggering errors due to empty strings
-        for k, v in properties.items():
-            if v == "":
-                properties.update({k: " "})
-
-        for key, val in properties.items():
-            data.append([key, str(val)])
-            datatypes.append(type(val))
-
-
-        window = PropertyGridWidget(data, windowtext, info)
-
-        #if alwaysontop == True:
-        #    window.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
-
-        #table = window.dialog_propertygrid(data, windowtext, info)
-
-        app.exec()
-
-
-        # print('out', table)
-
-        propgridwidget = window.properties
-        properties = {}
-        st1 = ''
-        for row in range(0, len(propgridwidget)):
-            # try:
-            twi0 = propgridwidget[row][0]
-            twi1 = propgridwidget[row][1]
-            st1 = st1 + ' ' + str(twi0) + ' ' + str(twi1)
-
-            if (datatypes[row] is bool):
-                res = False
-                if (twi1 == 'True'):
-                    res = True
-                properties[twi0] = res
-                # properties[twi0] = data[row][0]
-            else:
-                if (datatypes[row] is int):
-                    try:
-                        properties[twi0] = int(twi1)
-                    except:
-                        properties[twi0] = float(twi1)
-                        # changed from int to float
-                else:
-                    if (datatypes[row] is float):
-                        properties[twi0] = float(twi1)
-                    else:
-                        if (datatypes[row] is dict):
-                            properties[twi0] = eval(twi1)
-                            print('eval:', eval(twi1))
-                        else:
-                            properties[twi0] = twi1  # not float or int therefore making it string
-
-        if (verbose == True):
-            print('types: ', st1)
-            print('out: ', properties)
-
-        return properties
-    '''
-
     @staticmethod
     def openfile_dialog(path='/', windowtext='Open File Dialog', filter="Images (*.png *.jpg *.bmp *.tif *.tiff)",
                         alwaysontop=True):
@@ -1325,16 +1096,6 @@ class Dialogs(object):
         print("point: {0}".format(pntslist))
         return pnt
 
-    """
-    @staticmethod
-    def _Convert.toRGB(img):
-        img1 = img
-        channels = len(img.shape)
-        if (channels is not 3):
-            img1 = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
-        return img1
-    """
-
     @staticmethod
     def select_points(img, windowtext="Select Points"):
         """Select multiple points in an image
@@ -1412,82 +1173,6 @@ class Dialogs(object):
         cv.destroyAllWindows()
         print("points: {0}".format(pntslist))
         return pntslist
-
-    '''
-    @staticmethod
-    def select_lines_OLD(img, windowtext="Select Lines"):
-        """Draw multiple lines in an image and return (x0,y0,x1,y1) for each rectangle
-
-        :Parameters: windowtext=name of form
-        :Returns: list of shapes [shapenumber][(x0,y0),(x1,y1)]
-        :rtype: object
-        """
-
-
-        img0 = img.copy()
-        fx = 1
-
-        cv.namedWindow(windowtext, cv.WINDOW_AUTOSIZE)
-
-        refPt = []
-        cropping = False
-        img0 = ims.Image.Convert.toRGB(img0)
-
-        pntslist = []
-
-        def click_and_crop(event, x, y, flags, param):
-            # grab references to the global variables
-            global refPt, cropping
-
-            # if the left mouse button was clicked, record the starting
-            # (x, y) coordinates and indicate that cropping is being
-            # performed
-            if event == cv.EVENT_LBUTTONDOWN:
-                refPt = [(x, y)]
-                cropping = True
-
-            # check to see if the left mouse button was released
-            elif event == cv.EVENT_LBUTTONUP:
-                # record the ending (x, y) coordinates and indicate that
-                # the cropping operation is finished
-                refPt.append((x, y))
-                cropping = False
-
-                # draw a line from point 0 to 1
-                cv.line(img0, refPt[0], refPt[1], (0, 255, 0), 2)
-
-                refPt2 = [(int(refPt[0][0] * 1 / fx), int(refPt[0][1] * 1 / fx)),
-                          (int(refPt[1][0] * 1 / fx), int(refPt[1][1] * 1 / fx))]
-                pntslist.append(refPt2)
-                cv.imshow(windowtext, img0)
-
-        clone = img0.copy()
-        # cv.namedWindow(windowtext)
-        cv.setMouseCallback(windowtext, click_and_crop)
-
-        # keep looping until the 'q' key is pressed
-        while True:
-            # display the image and wait for a keypress
-            cv.imshow(windowtext, img0)
-            key = cv.waitKey(1) & 0xFF
-
-            # if the 'r' key is pressed, reset the cropping region
-            if key == ord("r"):
-                img0 = clone.copy()
-            # monitor escape
-            elif key == 27:
-                break
-            try:
-                if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
-                    break
-            except:
-                print("window already closed.")
-                break
-        # close all open windows
-        cv.destroyAllWindows()
-        print("lines: {0}".format(pntslist))
-        return pntslist
-    '''
 
     @staticmethod
     def select_lines(img, windowtext="Select Lines"):
@@ -1656,6 +1341,7 @@ class Dialogs(object):
 
         def nothing(x):
             pass
+
         img = ims.Image.Convert.to8bit(img)
         fx = 1024 / img.shape[1]
         if fx < 1:
@@ -1719,6 +1405,7 @@ class Dialogs(object):
 
         def nothing(x):
             pass
+
         img = ims.Image.Convert.to8bit(img)
         fx = 1024 / img.shape[1]
         if fx < 1:
@@ -2277,72 +1964,6 @@ class Dialogs(object):
         print("OpenCloseErodeDilate: Image")
         return thresh1
 
-    '''
-    @staticmethod
-    def adjust_HSV(img, windowtext="HSV Channels"):
-        """Adjust HSV channels dialog - Dialog which enables adjustment of hsv channels (hue, saturation and value).
-
-        :Parameters: windowtext=name of form
-        :Returns: image, h,s,v
-        """
-
-        def subfunction(img2,h,s,v):
-            # Normal masking algorithm
-            lower_blue = np.array([h, s, v])
-            upper_blue = np.array([180, 255, 255])
-
-            mask = cv.inRange(img2, lower_blue, upper_blue)
-
-            result = cv.bitwise_and(frame, frame, mask=mask)
-            return result
-
-        def nothing(x):
-            pass
-
-
-        fx= 1024/img.shape[1]
-        frame = cv.resize(img,None,fx=fx,fy=fx)
-        hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-
-        # Creating a window for later use
-        #cv.namedWindow(windowtext)
-        cv.namedWindow(windowtext)
-
-        # Starting with 100's to prevent error while masking
-        h, s, v = 100, 100, 100
-
-        # Creating track bar
-        cv.createTrackbar('Hue', windowtext, 0, 179, nothing)
-        cv.createTrackbar('Saturation', windowtext, 0, 255, nothing)
-        cv.createTrackbar('Value', windowtext, 0, 255, nothing)
-
-
-        while (1):
-
-            # converting to HSV
-
-            # get info from track bar and appy to result
-            h = cv.getTrackbarPos('Hue', windowtext)
-            s = cv.getTrackbarPos('Saturation', windowtext)
-            v = cv.getTrackbarPos('Value', windowtext)
-
-            
-            result = subfunction(hsv,h,s,v)
-
-            cv.imshow(windowtext, result)
-
-            k = cv.waitKey(5) & 0xFF
-            if k == 27:
-                break
-            if cv.getWindowProperty(windowtext, cv.WND_PROP_AUTOSIZE) < 1:
-                break
-        cv.destroyAllWindows()
-        print("output: image, Hue={},Sat={},Val={}".format(h,s,v))
-        hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        result = subfunction(hsv, h, s, v)
-        return result, h,s,v
-    '''
-
     # IMAGE INTERACTION
     @staticmethod
     def image_view(img, windowtext="Image View"):
@@ -2474,7 +2095,6 @@ class Dialogs(object):
 
         :Returns: list of urls
         """
-
 
         app = QtCore.QCoreApplication.instance()
         if app is None:

@@ -16,7 +16,6 @@ import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.ticker as ticker
-
 import numpy as np
 
 import imsis as ims
@@ -690,16 +689,6 @@ class Analyze(object):
             print("find image center of mass: {}".format((dx, dy)))
         return rgb, dx, dy
 
-    """
-    #failed not picking up the right point
-
-    @staticmethod
-    def find_brightest_spot(gray):
-        gray = cv.GaussianBlur(gray, (7, 7), 0)
-        (minVal, maxVal, minLoc, maxLoc) = cv.minMaxLoc(gray)
-        return maxLoc[0],maxLoc[1]
-    """
-
     @staticmethod
     def __pretty_unit(val, baseunit='m'):
         """Give the number an appropriate SI prefix.
@@ -898,27 +887,6 @@ class Analyze(object):
             :returns: Plus or minus value
             """
             return -value if x < 0 else value
-
-        '''
-        def rescale_unit(img, pixelsize):
-            hfw = (width * pixelsize)  # pixelsize is expressed in meters
-
-            scalebarwidth = int((width * 0.2) / 100) * 100
-
-            val = scalebarwidth * pixelsize
-            l = np.floor(np.log10(abs(val)))
-            if abs(l) > 24:
-                l = sign(l, value=24)
-            div, mod = divmod(l, 5 * 1)
-            sc = 10 ** (-l + mod)
-
-            scalebarwidth = val / pixelsize
-            scalebarwidth_pixelsize = scalebarwidth*pixelsize
-            text = Analyze.__pretty_unit(scalebarwidth_pixelsize)
-            return scalebarwidth, text
-        '''
-
-        import numpy as np
 
         def rescale_unit(width, pixelsize):
             # width = img.shape[1]  # get the image width
@@ -1307,25 +1275,6 @@ class Analyze(object):
                                                                                                     mode='nearest') / 10.
             FM = np.abs(P0) + np.abs(P1) + np.abs(P2) + np.abs(P3)
             return cv.mean(FM)[0]
-
-        '''
-        def gaussianDerivative(self,img):
-            """GDER Gaussian derivative (Geusebroek2000)"""
-            N = np.math.floor(img.shape[1]/2.)
-            sig = N/2.5
-            x, y = np.mgrid[-N:N, -N:N]
-            print(x,y)
-            G = np.math.exp(-(x*x+y*y)/(2*sig*2*sig))/(2*np.pi*sig)
-            Gx = -x*G/(sig*sig)
-            Gy = -y*G/(sig*sig)
-            Rx = scipy.ndimage.convolve(img, Gx, mode='nearest')
-            Ry = scipy.ndimage.convolve(img, Gy, mode='nearest')
-            FM = Gx * Gx + Gy * Gy
-            mn = cv.mean(FM)[0]
-            if np.isnan(mn):
-                return np.nanmean(FM)
-            return mn
-        '''
 
         def brenner(self, img):
             """Brenner Gradient (BGR) Brenner97
@@ -2053,11 +2002,11 @@ class Analyze(object):
             Area = 1
             EquivalentDiameter = 2
             AspectRatio = 3
-            Solidity=4
-            Orientation=5
-            Perimeter=6
-            MeanIntensity=7
-            ConvexHullArea=8
+            Solidity = 4
+            Orientation = 5
+            Perimeter = 6
+            MeanIntensity = 7
+            ConvexHullArea = 8
 
         propertynames = ['Area',
                          'EquivalentDiameter',
@@ -2350,7 +2299,7 @@ class Analyze(object):
 
         @staticmethod
         def plot_feature_distribution(im_labeled, featureproperties, autoclose=0, num_bins=32,
-                                           sizedistributionxaxis=SizeDistributionXAxis.Area, plotfigure=True,pixelsize=1):
+                                      sizedistributionxaxis=SizeDistributionXAxis.Area, plotfigure=True, pixelsize=1):
             """Plot the feature size distribution
             :Parameters: labeled_image, featureproperties, path_out, autoclose
             :Returns: NA
@@ -2363,16 +2312,16 @@ class Analyze(object):
                     Analyze.FeatureProperties.SizeDistributionXAxis.Area: ("Area", "Area [m]", pixelsize),
                     Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio: ("AspectRatio", "AspectRatio [-]", 1),
                     Analyze.FeatureProperties.SizeDistributionXAxis.EquivalentDiameter: (
-                    "EquivalentDiameter", "Diameter [m]", pixelsize),
+                        "EquivalentDiameter", "Diameter [m]", pixelsize),
                     Analyze.FeatureProperties.SizeDistributionXAxis.Solidity: ("Solidity", "Solidity [-]", 1),
                     Analyze.FeatureProperties.SizeDistributionXAxis.Orientation: (
-                    "Orientation", "Orientation [degrees]", 1),
+                        "Orientation", "Orientation [degrees]", 1),
                     Analyze.FeatureProperties.SizeDistributionXAxis.Perimeter: (
-                    "Perimeter", "Perimeter [m]", pixelsize),
+                        "Perimeter", "Perimeter [m]", pixelsize),
                     Analyze.FeatureProperties.SizeDistributionXAxis.MeanIntensity: (
-                    "MeanIntensity", "Mean Intensity [A.U.]", 1),
+                        "MeanIntensity", "Mean Intensity [A.U.]", 1),
                     Analyze.FeatureProperties.SizeDistributionXAxis.ConvexHullArea: (
-                    "ConvexHullArea", "Convex Hull Area [m]", pixelsize),
+                        "ConvexHullArea", "Convex Hull Area [m]", pixelsize),
                 }
 
                 # Check if the chosen XAxis option exists
@@ -2385,7 +2334,6 @@ class Analyze(object):
                 else:
                     raise ValueError(f"Unknown SizeDistributionXAxis: {sizedistributionxaxis}")
 
-
                 coloridxR = Analyze.FeatureProperties.propertynames.index("ColR")
                 coloridxG = Analyze.FeatureProperties.propertynames.index("ColG")
                 coloridxB = Analyze.FeatureProperties.propertynames.index("ColB")
@@ -2394,7 +2342,7 @@ class Analyze(object):
                 color_values = []
 
                 for item in featureproperties:
-                    arealist.append(item[areaidx]*unitmultiplier)
+                    arealist.append(item[areaidx] * unitmultiplier)
                     color_value = (item[coloridxR], item[coloridxG], item[coloridxB])
                     color_values.append(color_value)
 
@@ -2411,7 +2359,6 @@ class Analyze(object):
                 else:
                     fig, current_axs = plt.subplots(figsize=(10, 10))
 
-
                 if num_bins == -1:  # If autobinning is requested
                     # Apply Freedman-Diaconis rule
                     iqr = np.subtract(*np.percentile(arealist, [75, 25]))
@@ -2420,9 +2367,8 @@ class Analyze(object):
                     num_bins_int = np.linspace(min(arealist), max(arealist), num=num_bins)
                 else:  # If the number of bins is provided
                     num_bins_int = np.linspace(min(arealist), max(arealist), num=num_bins)
-                    
 
-                #num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
+                # num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
 
                 # cmap_jet = cv.applyColorMap(np.arange(256, dtype=np.uint8), cv.COLORMAP_JET)
 
@@ -2469,95 +2415,6 @@ class Analyze(object):
             else:
                 print("Error: feature list empty.")
             return out
-
-        '''
-                @staticmethod
-        def plot_feature_size_distribution(im_labeled, featureproperties, filename, autoclose=0, num_bins=32,
-                                           sizedistributionxaxis=SizeDistributionXAxis.Area, plotfigure=False):
-            """Plot the feature size distribution
-            :Parameters: labeled_image, featureproperties, path_out, autoclose
-            :Returns: NA
-            """
-
-            if len(featureproperties)>0:
-
-
-                if sizedistributionxaxis == Analyze.FeatureProperties.SizeDistributionXAxis.Area:
-                    areaidx = Analyze.FeatureProperties.propertynames.index("Area")
-                    xlabel = "Area [pixels]"
-                else:
-                    if sizedistributionxaxis == Analyze.FeatureProperties.SizeDistributionXAxis.AspectRatio:
-                        areaidx = Analyze.FeatureProperties.propertynames.index("AspectRatio")
-                        xlabel = "AspectRatio [-]"
-                    else:
-                        areaidx = Analyze.FeatureProperties.propertynames.index("EquivalentDiameter")
-                        xlabel = "Diameter [pixels]"
-
-                coloridxR = Analyze.FeatureProperties.propertynames.index("ColR")
-                coloridxG = Analyze.FeatureProperties.propertynames.index("ColG")
-                coloridxB = Analyze.FeatureProperties.propertynames.index("ColB")
-
-                arealist = []
-                color_values = []
-
-                for item in featureproperties:
-                    arealist.append(item[areaidx])
-                    color_value = (item[coloridxR],item[coloridxG],item[coloridxB])
-                    color_values.append(color_value)
-
-                if plotfigure == True:
-                    gs_kw = dict(width_ratios=[1, 1], height_ratios=[1])
-                    fig, axs = plt.subplots(ncols=2, nrows=1, gridspec_kw=gs_kw, figsize=(20, 10))
-                    axs[0].imshow(cv.cvtColor(im_labeled, cv.COLOR_BGR2RGB))
-                    axs[0].set_title("Image")
-                else:
-                    fig, ax = plt.subplots(figsize=(10, 10))
-                    axs = [ax]  # create a list with single ax object
-
-
-                num_bins_int = min(len(set(arealist)), num_bins)  # Specify the limited number of bins, maximum 255
-
-                #cmap_jet = cv.applyColorMap(np.arange(256, dtype=np.uint8), cv.COLORMAP_JET)
-
-                hist, bin_edges = np.histogram(arealist, bins=num_bins_int)
-
-                axs[1].bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor='black', color=color_values, zorder=3)
-                axs[1].set_xlabel("{}".format(xlabel))
-                axs[1].set_ylabel("Counts")
-                axs[1].set_title("Size Distribution")
-                axs[1].set_yticks(np.arange(max(hist) + 1))  # Set y-axis ticks to integers
-                axs[1].margins(x=0)
-
-                axs[1].xaxis.set_major_locator(ticker.AutoLocator())
-                axs[1].xaxis.set_minor_locator(ticker.AutoMinorLocator())
-                axs[1].yaxis.set_major_locator(ticker.AutoLocator())
-                axs[1].yaxis.set_minor_locator(ticker.AutoMinorLocator())
-
-                asp = np.diff(axs[1].get_xlim())[0] / np.diff(axs[1].get_ylim())[0]
-                asp /= np.abs(np.diff(axs[0].get_xlim())[0] / np.diff(axs[0].get_ylim())[0])
-                axs[1].set_aspect(asp)
-                axs[1].grid(axis='x', color='0.95', zorder=0)
-
-                plt.tight_layout()
-                plt.savefig(filename)
-
-                if autoclose == -1:
-                    plt.close("all")
-                else:
-                    if autoclose > 0:
-                        try:
-                            plt.show(block=False)
-                            plt.pause(autoclose)  # 3 seconds, I use 1 usually
-                        except:
-                            print("Interrupted while waiting.")
-                        plt.close("all")
-                    else:
-                        plt.show()
-                    plt.close()
-            else:
-                print("Error: feature list empty.")
-
-        '''
 
         @staticmethod
         def plot_feature_size_ids(im_labeled, featureproperties, filename, autoclose=0):
@@ -2639,9 +2496,9 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
-            if overlay==False:
-                height, width,chan = img.shape
-                img = np.zeros((height,width,chan), np.uint8)
+            if overlay == False:
+                height, width, chan = img.shape
+                img = np.zeros((height, width, chan), np.uint8)
 
             for item in featureproperties:
                 # Draw rectangle around segmented items.
@@ -2650,7 +2507,7 @@ class Analyze(object):
                 x = int(item[xidx] - int(w / 2))
                 y = int(item[yidx] - int(h / 2))
 
-                img = cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                img = cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), thickness=1)
             return img
 
         @staticmethod
@@ -2663,16 +2520,15 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
-            if overlay==False:
-                height, width,chan = img.shape
-                img = np.zeros((height,width,chan), np.uint8)
-
+            if overlay == False:
+                height, width, chan = img.shape
+                img = np.zeros((height, width, chan), np.uint8)
 
             for item in featureproperties:
                 x = int(item[xidx])
                 y = int(item[yidx])
 
-                img = cv.circle(img, (x, y), 1, (0, 0, 255), 3)
+                img = cv.circle(img, (x, y), 1, (0, 255, 0), thickness=2)
             return img
 
         @staticmethod
@@ -2688,10 +2544,9 @@ class Analyze(object):
             yidx = Analyze.FeatureProperties.propertynames.index("YCoord")
 
             img = image.copy()
-            if overlay==False:
-                height, width,chan = img.shape
-                img = np.zeros((height,width,chan), np.uint8)
-
+            if overlay == False:
+                height, width, chan = img.shape
+                img = np.zeros((height, width, chan), np.uint8)
 
             for item in featureproperties:
                 # Draw rectangle around segmented items.
@@ -2700,8 +2555,8 @@ class Analyze(object):
                 angle = item[oidx]
                 x = item[xidx]
                 y = item[yidx]
-                img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0, 0, 255),
-                                 thickness=2)
+                img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0,255,0),
+                                 thickness=1)
             return img
 
         @staticmethod
@@ -2788,79 +2643,6 @@ class Analyze(object):
             black_background[gray == background_intensity] = [0, 0, 0]
 
             return black_background
-
-        '''
-        @staticmethod
-        def label_recolor_to_area(labels):
-            """Modify label, recolor the intensities by area (smaller=brighter)
-            note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
-                :Parameters: image_labels
-                :Returns: image
-            """
-            # Convert the image to grayscale
-            gray = cv.cvtColor(labels, cv.COLOR_BGR2GRAY)
-
-            # Find contours in the grayscale image
-            contours, _ = cv.findContours(gray, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-            # Sort the contours based on their areas (from largest to smallest)
-            contours = sorted(contours, key=cv.contourArea, reverse=True)
-
-            # Calculate the maximum contour area
-            max_area = cv.contourArea(contours[0])
-
-            # Create a mask image to draw the contours
-            mask = np.zeros(gray.shape, dtype=np.uint8)
-
-            # Assign reversed gray levels based on the area size of each contour
-            for i, contour in enumerate(contours):
-                gray_level = int(255 - (128 * cv.contourArea(contour) / max_area))  # Reverse and scale gray level
-                cv.drawContours(mask, [contour], -1, gray_level, thickness=cv.FILLED)
-
-            # Apply the mask to the grayscale image
-            # modified_gray = cv.bitwise_and(gray, mask)
-            modified_gray = mask
-
-            # Convert the modified grayscale image back to BGR color space
-            enhanced = cv.cvtColor(modified_gray, cv.COLOR_GRAY2BGR)
-
-            return enhanced
-
-        @staticmethod
-        def label_recolor_to_original_intensities(labels, source_image):
-            """Modify label, recolor the intensities by source image pixelsintensity
-                note: get feature properties also allows for area and pixel intensity labelling, which may be more accurate for agglomerates/overlapping particles.
-                :Parameters: image_labels
-                :Returns: image
-            """
-            # Convert the image to grayscale
-            gray = cv.cvtColor(labels, cv.COLOR_BGR2GRAY)
-            source_image = ims.Image.Convert.toGray(source_image)
-
-            # Find contours in the grayscale image
-            contours, _ = cv.findContours(gray, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-            # Sort the contours based on their areas (from largest to smallest)
-            contours = sorted(contours, key=cv.contourArea, reverse=True)
-
-            # Create a mask image to draw the contours
-            mask = np.zeros(gray.shape, dtype=np.uint8)
-
-            # Assign gray levels based on the center pixel of each contour in the source image
-            for contour in contours:
-                # Calculate the center of the contour
-
-                cx, cy, w, h = cv.boundingRect(contour)
-                gray_level = int(source_image[int(cy + h / 2), int(cx + w / 2)])
-
-                # Draw the contour on the mask with the assigned gray level
-                cv.drawContours(mask, [contour], -1, gray_level, thickness=cv.FILLED)
-
-            # Convert the mask image to BGR color space
-            enhanced = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
-
-            return enhanced
-            '''
 
     class OpticalFlow(object):
         def draw_flow(img, flow, step=16):

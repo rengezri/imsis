@@ -306,7 +306,6 @@ class ImageStack:
             s.append(imageout)
         return s
 
-
     @staticmethod
     def create_dummy_imagestack(image0, slices=10, add_noise=0.2, add_translations=0.2, add_rotations=360):
         """
@@ -320,22 +319,21 @@ class ImageStack:
         """
         w = image0.shape[1]
         h = image0.shape[0]
-        s=[]
+        s = []
         for i in range(0, slices):
             image1 = image0.copy()
-            if add_noise>0:
-                image1=ims.Image.Process.poisson_noise(image1,prob=add_noise)
-            if add_translations>0:
-                shiftx = int(-w*add_translations/2 + random.randint(0, int(w*add_translations)))
-                shifty = int(-h*add_translations/2 + random.randint(0, int(h*add_translations)))
-                image1=ims.Image.Transform.translate(image1,shiftx,shifty)
-            if add_rotations>0:
+            if add_noise > 0:
+                image1 = ims.Image.Process.poisson_noise(image1, prob=add_noise)
+            if add_translations > 0:
+                shiftx = int(-w * add_translations / 2 + random.randint(0, int(w * add_translations)))
+                shifty = int(-h * add_translations / 2 + random.randint(0, int(h * add_translations)))
+                image1 = ims.Image.Transform.translate(image1, shiftx, shifty)
+            if add_rotations > 0:
                 alpha = random.randint(0, add_rotations)
-                image1=ims.Image.Transform.rotate(image1,alpha)
+                image1 = ims.Image.Transform.rotate(image1, alpha)
 
             s.append(image1)
         return s
-
 
     @staticmethod
     def align_images(framelist, update_reference_image=True, high_precision=False):
@@ -385,4 +383,3 @@ class ImageStack:
             framelistnew.append(im2)
             i = i + 1
         return framelistnew
-
