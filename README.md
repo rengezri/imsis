@@ -6,7 +6,7 @@ Introduction
 
 IMSIS is an open source image analysis package in python.
 The library contains functions to quickly create simple dialog based scripts, fast image processing sequences and perform basic image analysis.
-The package relies on powerful libraries such as Numpy, Scipy, OpenCV and QT.
+The package relies on powerful libraries such as Numpy, Scipy, OpenCV and PySide6.
 
 Typical applications would be:
 
