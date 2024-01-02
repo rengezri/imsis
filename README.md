@@ -1,45 +1,44 @@
-IMSIS
-==================================================
+# IMSIS
 
-Introduction
-------------
+## Introduction
 
-IMSIS is an open source image analysis package in python.
-The library contains functions to quickly create simple dialog based scripts, fast image processing sequences and perform basic image analysis.
-The package relies on powerful libraries such as Numpy, Scipy, OpenCV and PySide6.
+IMSIS is an open source image analysis package in Python. The library contains functions to quickly create simple dialog-based scripts, fast image processing sequences, and perform basic image analysis. The package relies on powerful libraries such as Numpy, Scipy, OpenCV, and PySide6.
 
 Typical applications would be:
-
-- Dialog based scripts where syntax editing is replaced by runtime dialogs (input dialogs, warnings, property lists, radio button lists, text dialogs etc.)
-- Dialog based feature selection (spots, lines, rectangles etc.)
-- Fast multi image viewing with or without histograms
-- Image batch processing (sharpening, denoising, morphological operations, color operations, image conversion etc.)
+- Dialog-based scripts where syntax editing is replaced by runtime dialogs (input dialogs, warnings, property lists, radio button lists, text dialogs, etc.)
+- Dialog-based feature selection (spots, lines, rectangles, etc.)
+- Fast multi-image viewing with or without histograms
+- Image batch processing (sharpening, denoising, morphological operations, color operations, image conversion, etc.)
 - Image analysis (finding unique features, line profiles, counting features, image alignment, image comparisons, image sharpness)
 - Image filtering in Fourier space
 - Fast image processing for machine learning data
 
-Requirements
-------------
+## Requirements
 
 As in requirements file. Python > 3.5
 
-Requirements documentation
---------------------------
+## Requirements Documentation
 
-IMSIS Documentation building requires the following additional packages
-
+IMSIS Documentation building requires the following additional packages:
 - sphinx 5.3.0 (Python 3.10)
 - sphinx_rtd_theme 1.1.1 (Python 3.10)
 - rinohtype 0.5.4 (Python 3.10)
 
-Documentation can be automatically generated with python build_docs.py
+Documentation can be automatically generated with `python build_docs.py`.
 
-Installation
-------------
+## Installation
 
+To install IMSIS, run the following commands:
+
+```bash
 python setup.py sdist bdist_wheel
-
 pip install dist\imsis-1.0-py3-none-any.whl
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
 
 Example
 -------
