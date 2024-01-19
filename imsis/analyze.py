@@ -747,7 +747,7 @@ class Analyze(object):
         :Returns: image
         """
         font = ImageFont.truetype("arial.ttf", fontsize)
-        cx, cy = font.getsize(text)
+        _,_, cx, cy = font.getbbox(text)
         rgb = ims.Image.Convert.toRGB(img)
         pil_im = Image.fromarray(rgb)
         draw = ImageDraw.Draw(pil_im)
@@ -777,7 +777,9 @@ class Analyze(object):
         :Returns: image
         """
         font = ImageFont.truetype("arial.ttf", fontsize)
-        textX, textY = font.getsize(text)
+        #textX, textY = font.getsize(text)
+        _,_, textX, textY = font.getbbox(text)
+
         rgb = np.zeros((textY, textX, 3), np.uint8)
         pil_im = Image.fromarray(rgb)
         draw = ImageDraw.Draw(pil_im)
@@ -948,7 +950,9 @@ class Analyze(object):
         pil_im = Image.fromarray(img)
         font = ImageFont.truetype("arial.ttf", fontsize)
         draw = ImageDraw.Draw(pil_im)
-        textX, textY = font.getsize(text)
+        #textX, textY = font.getsize(text)
+        _,_, textX, textY = font.getbbox(text)
+
         img = Analyze.add_text(img, posx - int(textX / 2), posy - sizey - int(textY), text, fontsize, outline=True)
         # draw.text((posx - int(textX / 2), posy - sizey - int(textY)), text, 'white', font=font)
         # img = np.array(pil_im)
