@@ -747,7 +747,7 @@ class Analyze(object):
         :Returns: image
         """
         font = ImageFont.truetype("arial.ttf", fontsize)
-        _,_, cx, cy = font.getbbox(text)
+        _, _, cx, cy = font.getbbox(text)
         rgb = ims.Image.Convert.toRGB(img)
         pil_im = Image.fromarray(rgb)
         draw = ImageDraw.Draw(pil_im)
@@ -777,8 +777,8 @@ class Analyze(object):
         :Returns: image
         """
         font = ImageFont.truetype("arial.ttf", fontsize)
-        #textX, textY = font.getsize(text)
-        _,_, textX, textY = font.getbbox(text)
+        # textX, textY = font.getsize(text)
+        _, _, textX, textY = font.getbbox(text)
 
         rgb = np.zeros((textY, textX, 3), np.uint8)
         pil_im = Image.fromarray(rgb)
@@ -950,8 +950,8 @@ class Analyze(object):
         pil_im = Image.fromarray(img)
         font = ImageFont.truetype("arial.ttf", fontsize)
         draw = ImageDraw.Draw(pil_im)
-        #textX, textY = font.getsize(text)
-        _,_, textX, textY = font.getbbox(text)
+        # textX, textY = font.getsize(text)
+        _, _, textX, textY = font.getbbox(text)
 
         img = Analyze.add_text(img, posx - int(textX / 2), posy - sizey - int(textY), text, fontsize, outline=True)
         # draw.text((posx - int(textX / 2), posy - sizey - int(textY)), text, 'white', font=font)
@@ -2559,7 +2559,7 @@ class Analyze(object):
                 angle = item[oidx]
                 x = item[xidx]
                 y = item[yidx]
-                img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0,255,0),
+                img = cv.ellipse(img, (x, y), (w, h), angle=angle, startAngle=0, endAngle=360, color=(0, 255, 0),
                                  thickness=1)
             return img
 
@@ -2647,6 +2647,241 @@ class Analyze(object):
             black_background[gray == background_intensity] = [0, 0, 0]
 
             return black_background
+
+    class FeatureClassifier(object):
+
+        color_map = {
+            'circle': (255, 0, 0),  # Red
+            'rod': (0, 255, 0),  # Green
+            'ellipse': (0, 0, 255),  # Blue
+            'triangle': (0, 255, 255),  # Cyan
+            'rectangle': (255, 0, 255),  # Magenta
+            'square': (255, 255, 0),  # Yellow
+            'trapezoid': (255, 165, 0),  # Orange
+            'fiber': (128, 0, 128),  # Purple
+            'cross': (0, 128, 0),  # Dark Green
+            'hexagon': (64, 224, 208),  # Turquoise
+            'octagon': (255, 105, 180),  # Hot Pink
+            'star': (218, 112, 214),  # Orchid
+        }
+
+        @staticmethod
+        def _generate_image(shape, size):
+            """Generate dummy shapes
+                :Parameters: shape, size
+                :Returns: image
+            """
+
+            if shape == 'circle':
+                image = np.zeros((size, size), dtype=np.uint8)
+                center = (size // 2, size // 2)
+                radius = size // 3
+                cv.ellipse(image, center, (radius, radius), 0, 0, 360, 255, thickness=2)
+                return image
+
+            elif shape == 'star':
+                image = np.zeros((size, size), dtype=np.uint8)
+                outer_radius = size // 3
+                inner_radius = outer_radius // 2
+
+                center_x, center_y = size // 2, size // 2
+
+                points = []
+                for i in range(8):
+                    angle_deg = i * 45  # 45 degree separation
+                    radius = outer_radius if i % 2 == 0 else inner_radius
+
+                    x = int(center_x + radius * np.cos(np.radians(angle_deg)))
+                    y = int(center_y + radius * np.sin(np.radians(angle_deg)))
+                    points.append((x, y))
+
+                points = np.array([points], np.int32)
+                cv.polylines(image, points, isClosed=True, color=255, thickness=2)
+                return image
+
+            elif shape == 'rod':
+                image = np.zeros((size, size), dtype=np.uint8)
+                cv.line(image, (size // 4, size // 2), (size * 3 // 4, size // 2), 255, thickness=4)
+                return image
+            elif shape == 'ellipse':
+                image = np.zeros((size, size), dtype=np.uint8)
+                cv.ellipse(image, (size // 2, size // 2), (size // 4, size // 8), 0, 0, 360, 255, thickness=2)
+                return image
+            elif shape == 'triangle':
+                image = np.zeros((size, size), dtype=np.uint8)
+                points = np.array([[size // 2, size // 4], [size // 4, size * 3 // 4], [size * 3 // 4, size * 3 // 4]],
+                                  np.int32)
+                # cv.fillPoly(image, [points], 255)
+                cv.polylines(image, [points], isClosed=True, color=255, thickness=2)
+                return image
+            elif shape == 'rectangle':
+                image = np.zeros((size, size), dtype=np.uint8)
+                cv.rectangle(image, (size // 6, size // 4), (size * 5 // 6, size * 3 // 4), 255, thickness=2)
+                return image
+            elif shape == 'square':
+                image = np.zeros((size, size), dtype=np.uint8)
+                square_side = size * 3 // 4  # Adjust this as needed
+                top_left_x = (size - square_side) // 2
+                top_left_y = (size - square_side) // 2
+                bottom_right_x = top_left_x + square_side
+                bottom_right_y = top_left_y + square_side
+                cv.rectangle(image, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), 255, thickness=2)
+                return image
+            elif shape == 'trapezoid':
+                image = np.zeros((size, size), dtype=np.uint8)
+                points = np.array(
+                    [[size // 6, size * 3 // 4], [size * 5 // 6, size * 3 // 4], [size * 3 // 4, size // 4],
+                     [size // 4, size // 4]], np.int32)
+                points = points.reshape((-1, 1, 2))
+                cv.polylines(image, [points], isClosed=True, color=255, thickness=2)
+                return image
+            elif shape == 'fiber':
+                image = np.zeros((size, size), dtype=np.uint8)
+                cv.line(image, (size // 2, 0), (size // 2, size), 255, thickness=2)
+                return image
+            elif shape == 'cross':
+                image = np.zeros((size, size), dtype=np.uint8)
+                thickness = 2
+                cv.line(image, (size // 2, size // 4), (size // 2, size * 3 // 4), 255, thickness)
+                cv.line(image, (size // 4, size // 2), (size * 3 // 4, size // 2), 255, thickness)
+                return image
+            elif shape == 'hexagon':
+                # Define points for a hexagon
+                image = np.zeros((size, size), dtype=np.uint8)
+                angle = 60
+                radius = size // 3
+                offset = size // 2
+                points = np.array([[int(radius * np.cos(np.radians(angle * i))) + offset,
+                                    int(radius * np.sin(np.radians(angle * i))) + offset] for i in range(6)], np.int32)
+                # cv.fillPoly(image, [points.reshape((-1, 1, 2))], 255)
+                cv.polylines(image, [points], isClosed=True, color=255, thickness=2)
+                return image
+            elif shape == 'octagon':
+                image = np.zeros((size, size), dtype=np.uint8)
+                angle = 45  # Each angle in an octagon is 45 degrees
+                radius = size // 3
+                offset = size // 2
+                points = np.array([[int(radius * np.cos(np.radians(angle * i))) + offset,
+                                    int(radius * np.sin(np.radians(angle * i))) + offset] for i in range(8)], np.int32)
+                # cv.fillPoly(image, [points.reshape((-1, 1, 2))], 255)
+                cv.polylines(image, [points.reshape((-1, 1, 2))], isClosed=True, color=255, thickness=2)
+                return image
+            else:
+                return None
+
+        @staticmethod
+        def _match_shape(template_contours, target_image_contour):
+            """match_shape
+               :Parameters: template, target
+               :Returns: min_diff, best_match
+            """
+            contour1 = target_image_contour
+            min_diff = float('inf')
+            best_match = None
+            for contour2 in template_contours:
+                # imga = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour1], -1, (255, 0, 0),2)
+                # imgb = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour2], -1, (255, 0, 0), 2)
+                match = cv.matchShapes(contour1, contour2, cv.CONTOURS_MATCH_I3, 0)
+                # ims.View.plot_list([imga, imgb],titlelist=[match,""])
+                if match < min_diff:
+                    min_diff = match
+                    best_match = contour2
+            return min_diff, best_match
+
+        @staticmethod
+        def classify_features(input_image, mask):
+            """classify features
+               :Parameters: input_image, mask
+               :Returns: detected_objects, annotated_image
+            """
+            # Create a copy of the original image to annotate
+            annotated_image = ims.Image.Convert.toRGB(input_image.copy())
+
+            # Color map for different shapes
+            color_map = Analyze.FeatureClassifier.color_map
+
+            # Detect shapes and annotate the image
+            contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            detected_objects = []
+            for contour in contours:
+                area = cv.contourArea(contour)
+                equivalent_diameter = np.sqrt(4 * area / np.pi)
+
+                # Calculate Moments
+                M = cv.moments(contour)
+                cx, cy = 0, 0  # Fallback values
+                if M["m00"] != 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+
+                # Calculate Orientation
+                if M['mu20'] + M['mu02'] != 0:  # Avoid division by zero
+                    theta = 0.5 * np.arctan(2 * M['mu11'] / (M['mu20'] - M['mu02']))
+                    orientation = np.degrees(theta)  # Convert radians to degrees
+                else:
+                    orientation = 0
+
+                min_diff = float('inf')
+                best_shape = None
+                for shape in color_map.keys():
+                    template = Analyze.FeatureClassifier._generate_image(shape, 100)
+                    template_thresh = cv.threshold(template, 127, 255, cv.THRESH_BINARY)[1]
+                    template_contours, _ = cv.findContours(template_thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+                    diff, _ = Analyze.FeatureClassifier._match_shape(template_contours, contour)
+                    if diff < min_diff:
+                        min_diff = diff
+                        best_shape = shape
+
+                detected_objects.append({
+                    'x': cx,
+                    'y': cy,
+                    'shape': best_shape,
+                    'area': int(area),
+                    'equivalent_diameter': int(equivalent_diameter),
+                    'orientation': round(orientation, 4)
+                })
+                # Annotate the detected shape on the image
+                cv.drawContours(annotated_image, [contour], -1, color_map[best_shape], 2)
+
+            return detected_objects, annotated_image
+
+        @staticmethod
+        def show_supported_shapes():
+            """show_supported_shapes
+               :Returns: image
+            """
+            # Define the canvas size and the size for each shape image
+            canvas_height, canvas_width = 600, 1000
+            shape_size = 128  # Size of each shape image
+            padding = 20  # Space between shapes
+
+            # Initialize a blank canvas
+            canvas = np.ones((canvas_height, canvas_width, 3), dtype=np.uint8) * 255  # White background
+
+            # Define the color map for shapes
+            color_map = Analyze.FeatureClassifier.color_map
+
+            shapes = list(color_map.keys())
+            num_shapes = len(shapes)
+            shapes_per_row = canvas_width // (shape_size + padding)
+
+            for i, shape in enumerate(shapes):
+                # Generate shape image
+                shape_img = Analyze.FeatureClassifier._generate_image(shape, shape_size)
+                # Convert shape image to color
+                colored_shape_img = cv.cvtColor(shape_img, cv.COLOR_GRAY2BGR)
+                # Color the shape using its corresponding color in the color map
+                colored_shape_img[shape_img == 255] = color_map[shape]
+
+                # Calculate position
+                row, col = divmod(i, shapes_per_row)
+                x = col * (shape_size + padding)
+                y = row * (shape_size + padding)
+
+                # Place colored shape on the canvas
+                canvas[y:y + shape_size, x:x + shape_size] = colored_shape_img
+
+            return canvas
 
     class OpticalFlow(object):
         def draw_flow(img, flow, step=16):
