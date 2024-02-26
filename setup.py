@@ -4,13 +4,13 @@ import setuptools
 setup(
   name = 'imsis',
   packages = ['imsis'],
-  version = '1.1.5',
+  version = '1.1.6',
   license='MIT',
   description = 'image analysis in Python',
   author = 'rengezri',
   author_email = 'rengezri@gmail.com',
   url = 'https://github.com/rengezri',
-  download_url = 'https://github.com/rengezri/imsis/archive/refs/tags/v1.1.5.tar.gz',
+  download_url = 'https://github.com/rengezri/imsis/archive/refs/tags/v1.1.6.tar.gz',
   keywords = ['image analysis', 'dialogs', 'batch processing'],   # Keywords that define your package best
   install_requires=['markdown'],
   classifiers=[
