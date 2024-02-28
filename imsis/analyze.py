@@ -740,7 +740,7 @@ class Analyze(object):
         return out
 
     @staticmethod
-    def add_text(img, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False, outline=True):
+    def add_text(img, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False, outline=True, drawbar=False, barcolor=(0,0,0)):
         """Add text to an image
 
         :Parameters: image, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False
@@ -754,6 +754,14 @@ class Analyze(object):
         if (aligntocenter == True):
             x0 = x0 - int(cx * 0.5)
             y0 = y0 - int(cy * 0.5)
+
+        text_width, text_height = draw.textsize(text, font=font)
+
+        if drawbar:
+            bar_margin = 0  # Adjust the padding around the text for the bar
+            bar_x0, bar_y0 = x0 - bar_margin, y0 - bar_margin
+            bar_x1, bar_y1 = x0 + text_width + bar_margin, y0 + text_height + bar_margin
+            draw.rectangle([bar_x0, bar_y0, bar_x1, bar_y1], fill=barcolor)  # Bar's color
 
         # thin border
         if outline == True:
@@ -2652,13 +2660,13 @@ class Analyze(object):
 
         color_map = {
             'circle': (255, 0, 0),  # Red
-            'rod': (0, 255, 0),  # Green
             'ellipse': (0, 0, 255),  # Blue
-            'triangle': (0, 255, 255),  # Cyan
+            'line': (128, 0, 128),  # Purple
+            'rod': (0, 255, 0),  # Green
             'rectangle': (255, 0, 255),  # Magenta
             'square': (255, 255, 0),  # Yellow
             'trapezoid': (255, 165, 0),  # Orange
-            'fiber': (128, 0, 128),  # Purple
+            'triangle': (0, 255, 255),  # Cyan
             'cross': (0, 128, 0),  # Dark Green
             'hexagon': (64, 224, 208),  # Turquoise
             'octagon': (255, 105, 180),  # Hot Pink
@@ -2675,13 +2683,13 @@ class Analyze(object):
             if shape == 'circle':
                 image = np.zeros((size, size), dtype=np.uint8)
                 center = (size // 2, size // 2)
-                radius = size // 3
+                radius = int(size // 2.3)
                 cv.ellipse(image, center, (radius, radius), 0, 0, 360, 255, thickness=2)
                 return image
 
             elif shape == 'star':
                 image = np.zeros((size, size), dtype=np.uint8)
-                outer_radius = size // 3
+                outer_radius = int(size // 2.3)
                 inner_radius = outer_radius // 2
 
                 center_x, center_y = size // 2, size // 2
@@ -2701,22 +2709,30 @@ class Analyze(object):
 
             elif shape == 'rod':
                 image = np.zeros((size, size), dtype=np.uint8)
-                cv.line(image, (size // 4, size // 2), (size * 3 // 4, size // 2), 255, thickness=4)
+                thickness = int(size // 10)
+                cv.line(image, (size // 8, size // 2), (size * 7 // 8, size // 2), 255, thickness=thickness)
                 return image
             elif shape == 'ellipse':
                 image = np.zeros((size, size), dtype=np.uint8)
-                cv.ellipse(image, (size // 2, size // 2), (size // 4, size // 8), 0, 0, 360, 255, thickness=2)
+                cv.ellipse(image, (size // 2, size // 2), (int(size // 2.5), size // 8), 0, 0, 360, 255, thickness=2)
                 return image
             elif shape == 'triangle':
                 image = np.zeros((size, size), dtype=np.uint8)
                 points = np.array([[size // 2, size // 4], [size // 4, size * 3 // 4], [size * 3 // 4, size * 3 // 4]],
                                   np.int32)
                 # cv.fillPoly(image, [points], 255)
-                cv.polylines(image, [points], isClosed=True, color=255, thickness=2)
+                cv.polylines(image, [points], isClosed=True, color=255, thickness=5)
                 return image
             elif shape == 'rectangle':
                 image = np.zeros((size, size), dtype=np.uint8)
-                cv.rectangle(image, (size // 6, size // 4), (size * 5 // 6, size * 3 // 4), 255, thickness=2)
+                rect_width = int(size // 1.2)
+                rect_height = size // 4
+                x1 = (size - rect_width) // 2
+                y1 = (size - rect_height) // 2
+                x2 = x1 + rect_width
+                y2 = y1 + rect_height
+                cv.rectangle(image, (x1, y1), (x2, y2), 255, thickness=2)
+
                 return image
             elif shape == 'square':
                 image = np.zeros((size, size), dtype=np.uint8)
@@ -2735,21 +2751,21 @@ class Analyze(object):
                 points = points.reshape((-1, 1, 2))
                 cv.polylines(image, [points], isClosed=True, color=255, thickness=2)
                 return image
-            elif shape == 'fiber':
+            elif shape == 'line':
                 image = np.zeros((size, size), dtype=np.uint8)
-                cv.line(image, (size // 2, 0), (size // 2, size), 255, thickness=2)
+                cv.line(image, (size // 2, (size//8)), (size // 2, (size*7//8)), 255, thickness=2)
                 return image
             elif shape == 'cross':
                 image = np.zeros((size, size), dtype=np.uint8)
-                thickness = 2
-                cv.line(image, (size // 2, size // 4), (size // 2, size * 3 // 4), 255, thickness)
-                cv.line(image, (size // 4, size // 2), (size * 3 // 4, size // 2), 255, thickness)
+                thickness = 10
+                cv.line(image, (size // 2, size // 8), (size // 2, size * 7 // 8), 255, thickness)
+                cv.line(image, (size // 8, size // 2), (size * 7 // 8, size // 2), 255, thickness)
                 return image
             elif shape == 'hexagon':
                 # Define points for a hexagon
                 image = np.zeros((size, size), dtype=np.uint8)
                 angle = 60
-                radius = size // 3
+                radius = int(size // 2.2)
                 offset = size // 2
                 points = np.array([[int(radius * np.cos(np.radians(angle * i))) + offset,
                                     int(radius * np.sin(np.radians(angle * i))) + offset] for i in range(6)], np.int32)
@@ -2759,7 +2775,7 @@ class Analyze(object):
             elif shape == 'octagon':
                 image = np.zeros((size, size), dtype=np.uint8)
                 angle = 45  # Each angle in an octagon is 45 degrees
-                radius = size // 3
+                radius = int(size // 2.2)
                 offset = size // 2
                 points = np.array([[int(radius * np.cos(np.radians(angle * i))) + offset,
                                     int(radius * np.sin(np.radians(angle * i))) + offset] for i in range(8)], np.int32)
@@ -2779,71 +2795,298 @@ class Analyze(object):
             min_diff = float('inf')
             best_match = None
             for contour2 in template_contours:
-                # imga = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour1], -1, (255, 0, 0),2)
-                # imgb = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour2], -1, (255, 0, 0), 2)
+                #imga = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour1], -1, (255, 0, 0),2)
+                #imgb = cv.drawContours(np.zeros((256, 256), dtype=np.uint8), [contour2], -1, (255, 0, 0), 2)
                 match = cv.matchShapes(contour1, contour2, cv.CONTOURS_MATCH_I3, 0)
-                # ims.View.plot_list([imga, imgb],titlelist=[match,""])
+                #ims.View.plot_list([imga, imgb],titlelist=[match,""])
                 if match < min_diff:
                     min_diff = match
                     best_match = contour2
             return min_diff, best_match
 
         @staticmethod
-        def classify_features(input_image, mask):
-            """classify features
-               :Parameters: input_image, mask
-               :Returns: detected_objects, annotated_image
+        def find_contours_by_grayscale(image):
             """
-            # Create a copy of the original image to annotate
-            annotated_image = ims.Image.Convert.toRGB(input_image.copy())
+            Segments an image into layers based on unique grayscale values and finds contours for each layer.
 
-            # Color map for different shapes
+            :param image: A grayscale image
+            :return: A list containing contours from all grayscale levels.
+            """
+            unique_grayscales = np.unique(image)
+            all_contours = []
+
+            for grayscale in unique_grayscales:
+                # Create a binary mask for the current grayscale value
+                mask = np.where(image == grayscale, 255, 0).astype(np.uint8)
+
+                # Find contours on the binary mask
+                contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+                # Extend the list with the contours found for the current grayscale value
+                all_contours.extend(contours)
+
+            return all_contours
+
+        @staticmethod
+        def draw_contours_on_image(image, contours, feature_list, opacity=0.5):
+            """
+            Draws semi-transparent colored layers on the original image for each contour.
+
+            :param image: The original image (can be grayscale or color).
+            :param contours: A list containing contours from all grayscale levels.
+            :param opacity: The opacity level of the colored layers (0.0 to 1.0).
+            :return: The original image with colored contour overlays.
+            """
+            # Ensure the original image is in color to overlay colored contours
+            if len(image.shape) == 2 or image.shape[2] == 1:
+                colored_image = cv.cvtColor(image, cv.COLOR_GRAY2BGR)
+            else:
+                colored_image = image.copy()
+
+            # Create an all-zero array of the same shape as the input image to draw the contours
+            overlay = np.zeros_like(colored_image)
             color_map = Analyze.FeatureClassifier.color_map
 
-            # Detect shapes and annotate the image
-            contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            detected_objects = []
+            # Draw each contour
+            i=0
+            for contour in contours:
+                shape_str = feature_list[i]['shape_str']  # Use 'shape_str' to get the shape
+                cv.drawContours(overlay, [contour], -1, color_map[shape_str], -1)  # -1 fills the contour
+                i=i+1
+
+            # Blend the overlay with the original image
+            cv.addWeighted(overlay, opacity, colored_image, 1 - opacity, 0, colored_image)
+
+            return colored_image
+
+        @staticmethod
+        def create_featurelist(contours):
+            """classify features
+               :Parameters: contours
+               :Returns: feature_list, clean_contours
+            """
+            color_map = Analyze.FeatureClassifier.color_map
+            clean_contours=[]
+            feature_list = []
+            nr = 0
             for contour in contours:
                 area = cv.contourArea(contour)
-                equivalent_diameter = np.sqrt(4 * area / np.pi)
+                #remove noise
+                if area>1:
+                    perimeter = cv.arcLength(contour, True)
+                    equivalent_diameter = np.sqrt(4 * area / np.pi)
 
-                # Calculate Moments
-                M = cv.moments(contour)
-                cx, cy = 0, 0  # Fallback values
-                if M["m00"] != 0:
-                    cx = int(M["m10"] / M["m00"])
-                    cy = int(M["m01"] / M["m00"])
+                    # Calculate aspect ratio and solidity
+                    x, y, w, h = cv.boundingRect(contour)
+                    aspect_ratio = w / float(h)
+                    epsilon = 0.01 * cv.arcLength(contour, True)
+                    approx = cv.approxPolyDP(contour, epsilon, True)
+                    num_vertices = len(approx)
 
-                # Calculate Orientation
-                if M['mu20'] + M['mu02'] != 0:  # Avoid division by zero
-                    theta = 0.5 * np.arctan(2 * M['mu11'] / (M['mu20'] - M['mu02']))
-                    orientation = np.degrees(theta)  # Convert radians to degrees
-                else:
-                    orientation = 0
+                    # Calculate convex hull and convexity defects
+                    hull_indices = cv.convexHull(contour, returnPoints=False)
 
-                min_diff = float('inf')
-                best_shape = None
-                for shape in color_map.keys():
-                    template = Analyze.FeatureClassifier._generate_image(shape, 100)
-                    template_thresh = cv.threshold(template, 127, 255, cv.THRESH_BINARY)[1]
-                    template_contours, _ = cv.findContours(template_thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-                    diff, _ = Analyze.FeatureClassifier._match_shape(template_contours, contour)
-                    if diff < min_diff:
-                        min_diff = diff
-                        best_shape = shape
+                    '''
+                    defect_count=99
+                    try:
+                        if len(hull_indices) > 3:
+                            defects = cv.convexityDefects(contour, hull_indices)
+                            defect_count = defects.shape[0] if defects is not None else 0
+                        else:
+                            defect_count = 0
+                    except:
+                        print("skip defect count")
+                    '''
 
-                detected_objects.append({
-                    'x': cx,
-                    'y': cy,
-                    'shape': best_shape,
-                    'area': int(area),
-                    'equivalent_diameter': int(equivalent_diameter),
-                    'orientation': round(orientation, 4)
-                })
-                # Annotate the detected shape on the image
-                cv.drawContours(annotated_image, [contour], -1, color_map[best_shape], 2)
+                    # Calculate convex hull for area (points)
+                    hull_points = cv.convexHull(contour, returnPoints=True)
+                    hull_area = cv.contourArea(hull_points)
+                    solidity = area / float(hull_area) if hull_area > 0 else 0
 
-            return detected_objects, annotated_image
+                    # Calculate Moments for orientation
+                    M = cv.moments(contour)
+                    if M["m00"] != 0:
+                        cx = int(M["m10"] / M["m00"])
+                        cy = int(M["m01"] / M["m00"])
+                    else:
+                        cx, cy = (0, 0)
+
+                    if M['mu20'] + M['mu02'] != 0 and (M['mu20'] - M['mu02']) != 0:
+                        theta = 0.5 * np.arctan((2 * M['mu11']) / (M['mu20'] - M['mu02']))
+                    else:
+                        theta = 0
+
+                    orientation = np.degrees(theta)
+                    if perimeter != 0:
+                        circularity = (4 * np.pi * area) / (perimeter ** 2)
+                    else:
+                        circularity = 0  # or some other default value indicating undefined circularity
+
+                    area_ratio = area / (w*h)
+
+                    if len(contour) >= 5:
+                        ellipse = cv.fitEllipse(contour)
+                        # The ellipse is returned as (center (x,y), (major axis length, minor axis length), angle)
+                        majoraxislength = max(ellipse[1])
+                        minoraxislength = min(ellipse[1])
+                    else:
+                        # Default or alternative computation if contour has fewer than 5 points
+                        majoraxislength = 0
+                        minoraxislength = 0
+
+
+                    min_diff = float('inf')
+                    best_shape = None
+                    for shape in color_map.keys():
+                        template = Analyze.FeatureClassifier._generate_image(shape, 100)
+                        template_thresh = cv.threshold(template, 127, 255, cv.THRESH_BINARY)[1]
+                        template_contours, _ = cv.findContours(template_thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+                        diff, _ = Analyze.FeatureClassifier._match_shape(template_contours, contour)
+                        if diff < min_diff:
+                            min_diff = diff
+                            best_shape = shape
+
+                    if best_shape == "star" or best_shape == "octagon":
+                            # First, let's handle shapes with a clear vertex count
+                            if num_vertices == 3:
+                                best_shape = "triangle"
+                            elif num_vertices == 4:
+                                if 0.95 <= aspect_ratio <= 1.05:
+                                    best_shape = "square"
+                                else:
+                                    best_shape = "rectangle"
+                            elif num_vertices == 6:
+                                best_shape = "hexagon"
+                            elif num_vertices == 8:
+                                best_shape = "octagon"
+                            elif circularity > 0.8:
+                                best_shape = "circle"
+                            else:
+                                # For shapes not fitting the above categories, we refine our ellipse classification
+                                if best_shape == "star" or best_shape == "octagon":
+                                    if solidity < 0.5 and area_ratio < 0.5:
+                                        best_shape = "star"
+                                    elif solidity > 0.8 and area_ratio > 0.5 and (num_vertices > 5 or num_vertices == 0):
+                                        # Only classify as ellipse if the shape does not match the vertex count of a polygon
+                                        # and meets solidity and area ratio criteria
+                                        best_shape = "ellipse"
+
+
+                    # Update detected_objects with aspect ratio and solidity
+                    nr += 1
+                    feature_list.append({
+                        'id': nr,
+                        'xcoord': cx,
+                        'ycoord': cy,
+                        'area': int(area),
+                        'equivalent_diameter': int(equivalent_diameter),
+                        'orientation': round(orientation, 4),
+                        'perimeter' : round(perimeter,4),
+                        'majoraxislength' : round(majoraxislength,4),
+                        'minoraxislength' : round(minoraxislength,4),
+                        'boundingboxwidth': int(w),
+                        'boundingboxheight': int(h),
+                        'convexhullarea': round(hull_area,4),
+                        'solidity': round(solidity, 4),
+                        'aspect_ratio': round(aspect_ratio, 4),
+                        'shape_str': best_shape,
+                        'conf_score': round(min_diff, 4),
+                    })
+                    clean_contours.append(contour)
+
+            return feature_list, clean_contours
+        '''
+        @staticmethod
+        def create_annotated_image(input_image, contours_on_image, feature_list):
+            """classify features
+               :Parameters: input_image, contours_on_image, feature_list
+               :Returns: id_image, category_image
+            """
+
+            id_image = ims.Image.add2(ims.Image.Convert.toRGB(input_image.copy()),contours_on_image.copy(),alpha=0.5)
+            category_image = id_image.copy()
+
+            image_width = id_image.shape[1]
+            if image_width < 512:
+                fontsize = int(id_image.shape[1] / 40)
+            else:
+                fontsize = int(512 / 40)
+
+            for obj in feature_list:
+                nr = obj['id']  # Object number
+                cx = obj['xcoord']  # X coordinate of the center
+                cy = obj['ycoord']  # Y coordinate of the center
+                best_shape = obj['shape_str']  # Shape determined during the detection phase
+
+                # Annotate the ID and the shape on the images
+                id_image = ims.Analyze.add_text(id_image, cx, cy, str(nr), fontsize, aligntocenter=True, outline=True)
+                category_image = ims.Analyze.add_text(category_image, cx, cy, best_shape, fontsize, aligntocenter=True,
+                                                      outline=True)
+
+            return id_image, category_image
+        '''
+
+        @staticmethod
+        def create_annotated_image(input_image, contours_on_image, feature_list):
+            """
+            Classify features
+            :Parameters: input_image, contours_on_image, feature_list
+            :Returns: id_image, category_image, boundingbox_image
+            """
+
+            id_image = ims.Image.add2(ims.Image.Convert.toRGB(input_image.copy()), contours_on_image.copy(), alpha=0.5)
+            category_image = id_image.copy()
+            bbox_image = id_image.copy()  # Copy of the id_image for drawing bounding boxes
+
+            image_width = id_image.shape[1]
+            if image_width < 512:
+                fontsize = int(id_image.shape[1] / 40)
+            else:
+                fontsize = int(512 / 40)
+
+            for obj in feature_list:
+                nr = obj['id']  # Object number
+                cx = obj['xcoord']  # X coordinate of the center
+                cy = obj['ycoord']  # Y coordinate of the center
+                best_shape = obj['shape_str']  # Shape determined during the detection phase
+                w = obj['boundingboxwidth']  # Width of the bounding box
+                h = obj['boundingboxheight']  # Height of the bounding box
+
+                # Annotate the ID and the shape on the images
+                id_image = ims.Analyze.add_text(id_image, cx, cy, str(nr), fontsize, aligntocenter=True, outline=True)
+                category_image = ims.Analyze.add_text(category_image, cx, cy, best_shape, fontsize, aligntocenter=True,
+                                                      outline=True)
+
+                # Draw bounding box and label for each shape
+                x, y = obj['xcoord'] - w // 2, obj['ycoord'] - h // 2  # Calculate top-left corner of the bounding box
+                cv.rectangle(bbox_image, (x, y), (x + w, y + h), (0, 255, 0), 1)  # Draw bounding box in orange
+
+                font = ImageFont.truetype("arial.ttf", fontsize)
+                rgb = ims.Image.Convert.toRGB(bbox_image)
+                pil_im = Image.fromarray(rgb)
+                draw = ImageDraw.Draw(pil_im)
+                text_width, text_height = draw.textsize(str(nr), font=font)
+                bbox_image = ims.Analyze.add_text(bbox_image, x+text_width//2, y+text_height//2, str(nr), fontsize, aligntocenter=True, outline=True,drawbar=True, barcolor=(0,255,0))
+
+            return id_image, category_image, bbox_image
+
+
+        @staticmethod
+        def classify_features(input_image, grayscale_mask):
+            """classify features
+               :Parameters: input_image, mask
+               :Returns: detected_objects, contour_image, id_image, category_image
+            """
+            print("start feature classification...")
+            contours = Analyze.FeatureClassifier.find_contours_by_grayscale(grayscale_mask)
+            print("contours:", len(contours))
+            feature_list, clean_contours = Analyze.FeatureClassifier.create_featurelist(contours)
+
+            contours_on_image = Analyze.FeatureClassifier.draw_contours_on_image(input_image,clean_contours,feature_list,opacity=0.5)
+
+            id_image, category_image, bbox_image = Analyze.FeatureClassifier.create_annotated_image(input_image, contours_on_image, feature_list)
+            return feature_list, id_image, category_image, bbox_image
+
 
         @staticmethod
         def show_supported_shapes():
@@ -2880,7 +3123,6 @@ class Analyze(object):
 
                 # Place colored shape on the canvas
                 canvas[y:y + shape_size, x:x + shape_size] = colored_shape_img
-
             return canvas
 
     class OpticalFlow(object):
