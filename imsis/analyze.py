@@ -740,6 +740,54 @@ class Analyze(object):
         return out
 
     @staticmethod
+    def add_text(img, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False, outline=True):
+        """Add text to an image
+
+        :Parameters: image, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False
+        :Returns: image
+        """
+        try:
+            font = ImageFont.truetype("arial.ttf", fontsize)
+        except IOError:
+            font = ImageFont.load_default()
+
+        # Get bounding box for text
+        left, top, right, bottom = font.getbbox(text)
+        text_width = right - left
+        text_height = bottom - top
+
+        # Convert numpy array to Pillow image if necessary
+        if isinstance(img, np.ndarray):
+            pil_im = Image.fromarray(img)
+        else:
+            pil_im = img
+
+        # Convert image to RGB if not already in that mode
+        if pil_im.mode != "RGB":
+            pil_im = pil_im.convert("RGB")
+
+        draw = ImageDraw.Draw(pil_im)
+
+        if aligntocenter:
+            x0 -= text_width // 2
+            y0 -= text_height // 2
+
+        # Draw text with outline
+        if outline:
+            shadowcolor = (0, 0, 0)
+            # Draw shadow
+            draw.text((x0 - 1, y0), text, font=font, fill=shadowcolor)
+            draw.text((x0 + 1, y0), text, font=font, fill=shadowcolor)
+            draw.text((x0, y0 - 1), text, font=font, fill=shadowcolor)
+            draw.text((x0, y0 + 1), text, font=font, fill=shadowcolor)
+            # Draw text
+            draw.text((x0, y0), text, fill=(255, 255, 255), font=font)
+        else:
+            draw.text((x0, y0), text, fill=(0, 255, 0), font=font)
+
+        return np.array(pil_im)
+
+    '''
     def add_text(img, x0=0, y0=0, text='empty', fontsize=60, aligntocenter=False, outline=True, drawbar=False, barcolor=(0,0,0)):
         """Add text to an image
 
@@ -776,6 +824,9 @@ class Analyze(object):
 
         img = np.array(pil_im)
         return img
+    '''
+
+
 
     @staticmethod
     def create_text_label(text, fontsize):
@@ -3033,7 +3084,6 @@ class Analyze(object):
             :Parameters: input_image, contours_on_image, feature_list
             :Returns: id_image, category_image, boundingbox_image
             """
-
             id_image = ims.Image.add2(ims.Image.Convert.toRGB(input_image.copy()), contours_on_image.copy(), alpha=0.5)
             category_image = id_image.copy()
             bbox_image = id_image.copy()  # Copy of the id_image for drawing bounding boxes
@@ -3053,20 +3103,22 @@ class Analyze(object):
                 h = obj['boundingboxheight']  # Height of the bounding box
 
                 # Annotate the ID and the shape on the images
-                id_image = ims.Analyze.add_text(id_image, cx, cy, str(nr), fontsize, aligntocenter=True, outline=True)
-                category_image = ims.Analyze.add_text(category_image, cx, cy, best_shape, fontsize, aligntocenter=True,
-                                                      outline=True)
+                id_image = Analyze.add_text(id_image, cx, cy, str(nr), fontsize, aligntocenter=True,
+                                                   outline=True)
+                category_image = Analyze.add_text(category_image, cx, cy, best_shape, fontsize,
+                                                         aligntocenter=True, outline=True)
 
                 # Draw bounding box and label for each shape
                 x, y = obj['xcoord'] - w // 2, obj['ycoord'] - h // 2  # Calculate top-left corner of the bounding box
-                cv.rectangle(bbox_image, (x, y), (x + w, y + h), (0, 255, 0), 1)  # Draw bounding box in orange
+                cv.rectangle(bbox_image, (x, y), (x + w, y + h), (0, 255, 0), 1)  # Draw bounding box in green
 
                 font = ImageFont.truetype("arial.ttf", fontsize)
                 rgb = ims.Image.Convert.toRGB(bbox_image)
                 pil_im = Image.fromarray(rgb)
                 draw = ImageDraw.Draw(pil_im)
-                text_width, text_height = draw.textsize(str(nr), font=font)
-                bbox_image = ims.Analyze.add_text(bbox_image, x+text_width//2, y+text_height//2, str(nr), fontsize, aligntocenter=True, outline=True,drawbar=True, barcolor=(0,255,0))
+                text_width, text_height = draw.textbbox((0, 0), str(nr), font=font)[2:]
+                bbox_image = Analyze.add_text(bbox_image, x + text_width // 2, y + text_height // 2, str(nr),
+                                                     fontsize, aligntocenter=True, outline=True)
 
             return id_image, category_image, bbox_image
 
